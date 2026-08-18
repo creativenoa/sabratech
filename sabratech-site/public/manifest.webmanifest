@@ -1,0 +1,23 @@
+{
+  "name": "SabraTech — Israeli tech in Atlanta",
+  "short_name": "SabraTech",
+  "description": "The Israeli entrepreneur, tech and AI directory of greater Atlanta.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#F5F5F5",
+  "theme_color": "#00A5E0",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["business", "productivity", "social"],
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Search the directory", "short_name": "Search", "url": "/search" },
+    { "name": "Join the directory", "short_name": "Join", "url": "/apply" }
+  ]
+}

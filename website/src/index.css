@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html { scroll-behavior: smooth; }
+body {
+  @apply bg-cream text-ink font-sans;
+  background-image: url('/background_overlay.webp');
+  background-repeat: no-repeat;
+  background-position: bottom center;
+  background-attachment: fixed;
+  background-size: 95% auto;
+}
+h1, h2, h3 { @apply font-serif; }
+
+.btn-primary { @apply inline-flex items-center justify-center gap-2 bg-navy px-5 py-3 text-base font-semibold tracking-wide text-cream transition-all duration-300 hover:bg-royal; border-radius: 6px; }
+.btn-outline { @apply inline-flex items-center justify-center gap-2 border border-navy bg-transparent px-5 py-3 text-base font-semibold tracking-wide text-navy transition-all duration-300 hover:bg-navy hover:text-cream; border-radius: 6px; }
+.card { background-image: linear-gradient(165deg, #FFFFFF 55%, #EEEFF4 100%); @apply border border-navy/10 bg-white transition-all duration-300 hover:border-navy/30 hover:shadow-[0_12px_40px_-12px_rgba(40,49,94,0.18)]; border-radius: 6px; }
+.input { @apply w-full border border-navy/20 bg-white px-4 py-3 text-ink outline-none transition focus:border-royal; border-radius: 6px; }
+.label { @apply mb-1.5 block text-sm font-semibold text-navy; }
+.kicker { @apply text-xs font-semibold uppercase tracking-[0.25em] text-royal; }
+.leaflet-container { direction: ltr; }
+
+.brush { position: relative; display: inline-block; }
+.brush-img { position: absolute; top: 50%; left: 50%; transform: translate(calc(-50% - 5px), calc(-50% + 5px)); width: 162%; height: 186%; max-width: none; pointer-events: none; }
+.brush-text { position: relative; z-index: 1; color: #F5F5F5; }
