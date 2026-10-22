@@ -65,12 +65,23 @@ export async function fetchCategories() {
   return DEFAULT_CATEGORIES
 }
 
+// Files live in Neon Object Storage now. The browser asks /api/upload for a
+// one-time signed upload link (the server holds the storage keys), PUTs the
+// file to it, and stores the returned public URL.
 export async function uploadFile(bucket, file, prefix = '') {
   const ext = (file.name.split('.').pop() || 'bin').toLowerCase()
   const path = `${prefix}${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
-  const { error } = await supabase.storage.from(bucket).upload(path, file)
-  if (error) throw error
-  return supabase.storage.from(bucket).getPublicUrl(path).data.publicUrl
+  const contentType = file.type || 'application/octet-stream'
+  const r = await fetch('/api/upload', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ bucket, path, contentType, size: file.size }),
+  })
+  const body = await r.json().catch(() => ({}))
+  if (!r.ok || !body.uploadUrl) throw new Error(body.error || 'Could not start the upload')
+  const put = await fetch(body.uploadUrl, { method: 'PUT', headers: { 'Content-Type': contentType }, body: file })
+  if (!put.ok) throw new Error('Upload failed')
+  return body.publicUrl
 }
 
 // Every key here is editable in Admin → Site texts. Prefix = page/section.

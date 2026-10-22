@@ -14,7 +14,7 @@
  * Bump CACHE_VERSION to force every client to drop its old cache.
  */
 
-const CACHE_VERSION = 'sabratech-v1'
+const CACHE_VERSION = 'sabratech-v3'
 const OFFLINE_URL = '/index.html'
 
 self.addEventListener('install', event => {
@@ -43,8 +43,8 @@ self.addEventListener('fetch', event => {
 
   // Never touch other origins (Supabase, Google Fonts, Leaflet tiles, Resend).
   if (url.origin !== self.location.origin) return
-  // Never cache our own serverless routes.
-  if (url.pathname.startsWith('/api/')) return
+  // Never cache our own serverless routes or the auth relay.
+  if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/neon-auth/')) return
 
   // Immutable hashed build output: cache-first.
   if (url.pathname.startsWith('/assets/')) {

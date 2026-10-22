@@ -43,7 +43,7 @@ export default function Layout() {
   return (
     <div className="flex min-h-screen flex-col">
       <header className={`sticky top-0 z-[1100] border-b transition-all duration-300 ${scrolled ? 'border-navy/5 bg-cream/5 backdrop-blur-md' : 'border-navy/10 bg-cream'}`}>
-        <div className="mx-auto flex max-w-[1080px] items-center justify-between gap-3 px-5 py-3.5 md:px-12">
+        <div className="mx-auto flex max-w-[1080px] items-center justify-between gap-3 px-5 py-3.5">
           <Link to="/" onClick={() => setOpen(false)}>
             <img src="/logo-light.svg" alt="SabraTech — Israeli tech in Atlanta" className="h-10 w-auto md:h-11" />
           </Link>

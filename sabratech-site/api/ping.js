@@ -1,9 +1,10 @@
 // Daily keep-alive so Supabase free projects never pause and sites always show activity.
 // Per project: a real table query (counts as database API activity; a 401/permission
 // response still registers as an authenticated API request) + auth settings (returns 200).
+// NOTE: SabraTech itself moved to Neon (no keep-alive needed — Neon wakes on demand);
+// this route stays alive because it also keeps Catchball Connect's Supabase awake.
 export default async function handler(req, res) {
   const projects = [
-    { name: 'sabratech', url: 'https://ngskhkjizjaxzquyqkkp.supabase.co', key: 'sb_publishable_6RiqlkES95dWYi2EPgn42g_ZKeOVbps', table: 'categories' },
     { name: 'catchball-connect', url: 'https://afsaefagpiwrbxuuvgor.supabase.co', key: 'sb_publishable_VJFoQqm77Q-LQLTMfFXZBA_qbcfhe7V', table: 'teams' },
   ]
   const sites = [

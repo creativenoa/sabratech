@@ -1,6 +1,7 @@
 {
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },
+    { "source": "/neon-auth/:path*", "destination": "/api/neon-auth?p=:path*" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "crons": [{ "path": "/api/ping", "schedule": "0 9 * * *" }]

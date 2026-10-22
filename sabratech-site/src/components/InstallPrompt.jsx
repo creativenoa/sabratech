@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 
-// "Add SabraTech to your phone" bar.
+// "Install SabraTech on your device" bar (phone or desktop).
 //
 // Two completely different mechanisms, because the platforms disagree:
 //   - Chrome / Edge / Android fire `beforeinstallprompt`, which we capture and
@@ -74,11 +74,11 @@ export default function InstallPrompt() {
       <div className="mx-auto flex max-w-[560px] items-center gap-3 rounded-md border border-navy/10 bg-white p-3 shadow-lg">
         <img src="/icon-192.png" alt="" className="h-11 w-11 shrink-0 rounded-md" />
         <div className="min-w-0 flex-1">
-          <p className="font-serif text-base leading-tight text-navy">Add SabraTech to your phone</p>
+          <p className="font-serif text-base leading-tight text-navy">Install SabraTech on your device</p>
           <p className="mt-0.5 text-sm leading-snug text-ink/60">
             {showIOS
               ? 'Tap the Share button, then "Add to Home Screen".'
-              : 'Open it like an app, straight from your home screen.'}
+              : 'Open it like an app, in one click.'}
           </p>
         </div>
         {deferred && (

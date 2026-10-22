@@ -118,7 +118,7 @@ export default function Admin() {
 
   if (!hasSupabase) return (
     <div className="mx-auto max-w-xl px-4 py-24 text-center">
-      <p className="mt-4 font-bold text-ink/70">The admin console becomes available once the database (Supabase) is connected.</p>
+      <p className="mt-4 font-bold text-ink/70">The admin console becomes available once the database (Neon) is connected.</p>
     </div>
   )
 
@@ -221,7 +221,7 @@ export default function Admin() {
         </p>
         {schemaMsg && (
           <p className="mt-4 rounded-md bg-cream p-3 text-left text-xs leading-relaxed text-ink/60">
-            Members setup is incomplete: {schemaMsg} Run sabratech-auth.sql in the Supabase SQL editor, then log in again.
+            Members setup is incomplete: {schemaMsg} Run the members SQL setup on the Neon database, then log in again.
           </p>
         )}
         <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
@@ -334,7 +334,7 @@ export default function Admin() {
           {contactsError && (
             <div className="card !p-4">
               <p className="text-sm font-bold text-red-700">Contact messages could not be loaded.</p>
-              <p className="mt-1 text-xs leading-relaxed text-ink/60">{contactsError} If you have not run sabratech-contact.sql in the Supabase SQL editor yet, run it and reload this page.</p>
+              <p className="mt-1 text-xs leading-relaxed text-ink/60">{contactsError} If the contact table has not been created on the Neon database yet, run the SQL setup and reload this page.</p>
             </div>
           )}
           {!contactsError && contacts.length === 0 && <p className="py-10 text-center text-ink/40">No messages yet.</p>}
@@ -362,7 +362,7 @@ export default function Admin() {
           {membersError && (
             <div className="card !p-4">
               <p className="text-sm font-bold text-red-700">Members could not be loaded.</p>
-              <p className="mt-1 text-xs leading-relaxed text-ink/60">{membersError} If you have not run sabratech-auth.sql in the Supabase SQL editor yet, run it and reload this page.</p>
+              <p className="mt-1 text-xs leading-relaxed text-ink/60">{membersError} If the members table has not been created on the Neon database yet, run the SQL setup and reload this page.</p>
             </div>
           )}
           {!membersError && membersSorted.length === 0 && <p className="py-10 text-center text-ink/40">No members yet.</p>}
