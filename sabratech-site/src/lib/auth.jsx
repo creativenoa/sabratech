@@ -145,6 +145,8 @@ export async function signIn({ email, password }) {
 }
 
 export async function signOut() {
+  // Admin banners hidden with "x" only stay hidden for one login.
+  try { sessionStorage.removeItem('sabratech_admin_dismissed') } catch { /* ignore */ }
   if (!hasSupabase) return
   const { error } = await supabase.auth.signOut()
   notifyAuthChange()

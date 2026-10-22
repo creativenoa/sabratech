@@ -34,6 +34,60 @@ const withSyncedName = t =>
 const displayName = t =>
   (t.type === 'individual' && fullName(t)) || t.name || ''
 
+// ---------- Action-item banner ----------
+// One red line at a time under the header. When an item is handled it fades
+// out and the next fades in. "x" hides an item for this login only: dismissals
+// live in sessionStorage and are cleared on sign-out, so anything still
+// unhandled comes back the next time an admin logs in.
+const DISMISS_KEY = 'sabratech_admin_dismissed'
+const readDismissed = () => {
+  try { return JSON.parse(sessionStorage.getItem(DISMISS_KEY) || '[]') } catch { return [] }
+}
+const writeDismissed = list => {
+  try { sessionStorage.setItem(DISMISS_KEY, JSON.stringify(list)) } catch { /* private mode etc. */ }
+}
+const clearDismissed = () => {
+  try { sessionStorage.removeItem(DISMISS_KEY) } catch { /* ignore */ }
+}
+
+function ActionBanner({ items, onGo, onDismiss }) {
+  const next = items[0] || null
+  const [current, setCurrent] = useState(null)
+  const [visible, setVisible] = useState(false)
+  const timer = useRef(null)
+
+  useEffect(() => {
+    if (current && next && next.key === current.key) { setCurrent(next); return }
+    if (current && visible) {
+      // current item is done or dismissed: fade it out, then make room for the next
+      setVisible(false)
+      clearTimeout(timer.current)
+      timer.current = setTimeout(() => setCurrent(null), 350)
+      return
+    }
+    if (!current && next) {
+      setCurrent(next)
+      timer.current = setTimeout(() => setVisible(true), 20)
+    }
+  }, [next?.key, current?.key, visible])
+
+  useEffect(() => () => clearTimeout(timer.current), [])
+
+  if (!current) return null
+  return (
+    <div className={`mb-5 flex items-center gap-3 rounded-lg bg-red-600 px-4 py-3 text-white shadow-md transition-all duration-300 ${visible ? 'translate-y-0 opacity-100' : '-translate-y-1 opacity-0'}`}
+      role="status">
+      <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-white/20 px-2 text-xs font-black">{items.length || 1}</span>
+      <p className="flex-1 text-sm font-bold">{current.text}</p>
+      <button className="shrink-0 rounded-md bg-white px-3 py-1.5 text-xs font-bold text-red-700 hover:bg-red-50"
+        onClick={() => onGo(current)}>{current.cta}</button>
+      <button aria-label="Dismiss" title="Hide until next login"
+        className="shrink-0 rounded-md p-1 text-white/80 hover:bg-white/15 hover:text-white"
+        onClick={() => onDismiss(current)}><Close className="h-4 w-4" /></button>
+    </div>
+  )
+}
+
 export default function Admin() {
   const { loading: authLoading, isAuthed, isAdmin } = useAuth()
   const [tab, setTab] = useState('pending')
@@ -53,6 +107,8 @@ export default function Admin() {
   const [schemaMsg, setSchemaMsg] = useState('')
   const [authOpen, setAuthOpen] = useState(false)
   const [msg, setMsg] = useState('')
+  const [dismissed, setDismissed] = useState(readDismissed)
+  const [highlight, setHighlight] = useState(null)
 
   // Never let a missing profiles table white-screen the console — surface it instead.
   const loadContacts = async () => {
@@ -256,22 +312,25 @@ export default function Admin() {
     load()
   }
 
-  const approve = async t => {
-    await supabase.from('talents').update({ status: 'approved', published: true }).eq('id', t.id)
+  // Optimistic: the row (and its banner) disappears the moment you click.
+  const setTalentStatus = async (t, status, published) => {
+    setRows(rs => rs.map(r => r.id === t.id ? { ...r, status, published } : r))
+    const { error } = await supabase.from('talents').update({ status, published }).eq('id', t.id)
+    setMsg(error ? 'Update failed: ' + error.message : status === 'approved' ? 'Approved' : 'Rejected')
     load()
   }
-  const reject = async t => {
-    await supabase.from('talents').update({ status: 'rejected', published: false }).eq('id', t.id)
-    load()
-  }
+  const approve = t => setTalentStatus(t, 'approved', true)
+  const reject = t => setTalentStatus(t, 'rejected', false)
 
   const setMemberStatus = async (id, status) => {
+    setMembers(ms => ms.map(m => m.id === id ? { ...m, status } : m))
     try {
       const { error } = await supabase.from('profiles').update({ status }).eq('id', id)
-      setMsg(error ? 'Member update failed: ' + error.message : 'Member updated')
-      if (!error) loadMembers()
+      setMsg(error ? 'Member update failed: ' + error.message : status === 'approved' ? 'Member approved' : status === 'rejected' ? 'Member rejected' : 'Member updated')
+      loadMembers()
     } catch (err) {
       setMsg('Member update failed: ' + (err?.message || 'unknown error'))
+      loadMembers()
     }
   }
 
@@ -286,6 +345,31 @@ export default function Admin() {
     setEditingTool(null); load()
   }
 
+  const memberLabel = m => m.full_name || m.email || 'someone'
+  const actionItems = [
+    ...members.filter(m => m.status === 'pending').map(m => ({
+      key: 'member:' + m.id, tab: 'members', rowId: 'member-' + m.id,
+      text: `New member waiting for approval: ${memberLabel(m)}`, cta: 'Approve member',
+    })),
+    ...pending.map(t => ({
+      key: 'talent:' + t.id, tab: 'pending', rowId: 'talent-' + t.id,
+      text: `New ${t.type === 'company' ? 'business' : 'individual'} listing waiting for approval: ${displayName(t) || 'untitled'}`,
+      cta: t.type === 'company' ? 'Approve business' : 'Approve listing',
+    })),
+  ].filter(a => !dismissed.includes(a.key))
+
+  const goToAction = a => {
+    setTab(a.tab)
+    setHighlight(a.rowId)
+    setTimeout(() => document.getElementById(a.rowId)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 60)
+    setTimeout(() => setHighlight(h => (h === a.rowId ? null : h)), 4000)
+  }
+  const dismissAction = a => {
+    const list = [...new Set([...dismissed, a.key])]
+    setDismissed(list); writeDismissed(list)
+  }
+  const rowRing = id => (highlight === id ? ' ring-2 ring-red-500 ring-offset-2 transition-shadow' : '')
+
   const TABS = [
     ['pending', `Applications (${pending.length})`],
     ['talents', `Directory (${live.length})`],
@@ -299,9 +383,10 @@ export default function Admin() {
 
   return (
     <div className="mx-auto max-w-[1080px] px-4 py-8">
+      <ActionBanner items={actionItems} onGo={goToAction} onDismiss={dismissAction} />
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-black text-navy">Site admin</h1>
-        <button className="text-sm font-bold text-cyan hover:underline" onClick={() => { signOut().catch(() => {}) }}>Sign out</button>
+        <button className="text-sm font-bold text-cyan hover:underline" onClick={() => { clearDismissed(); signOut().catch(() => {}) }}>Sign out</button>
       </div>
       <div className="mt-4 flex flex-wrap gap-2">
         {TABS.map(([t, label]) => (
@@ -315,7 +400,7 @@ export default function Admin() {
         <div className="mt-4 flex flex-col gap-2">
           {pending.length === 0 && <p className="py-10 text-center text-ink/40">No pending applications.</p>}
           {pending.map(t => (
-            <div key={t.id} className="card flex flex-wrap items-center gap-3 !p-4">
+            <div key={t.id} id={'talent-' + t.id} className={'card flex flex-wrap items-center gap-3 !p-4' + rowRing('talent-' + t.id)}>
               <span className={`badge ${t.type === 'company' ? 'bg-royal text-white' : 'bg-cyan text-white'}`}>{t.type === 'company' ? 'startup' : t.type}</span>
               <strong className="text-navy">{t.name}</strong>
               <span className="text-xs text-ink/50">{[t.title, t.company].filter(Boolean).join(' at ')} · {t.category}</span>
@@ -367,15 +452,20 @@ export default function Admin() {
           )}
           {!membersError && membersSorted.length === 0 && <p className="py-10 text-center text-ink/40">No members yet.</p>}
           {membersSorted.map(m => (
-            <div key={m.id} className="card flex flex-wrap items-center gap-3 !p-4">
+            <div key={m.id} id={'member-' + m.id} className={'card flex flex-wrap items-center gap-3 !p-4' + rowRing('member-' + m.id)}>
               <span className={`badge ${m.status === 'approved' ? 'bg-cyan text-white' : m.status === 'rejected' ? 'bg-red-100 text-red-700' : 'bg-sand text-ink/60'}`}>{m.status || 'pending'}</span>
               <strong className="text-navy">{m.full_name || 'No name'}</strong>
               <span className="text-xs text-ink/50">{m.email}</span>
               <span className="text-xs text-ink/40">{m.created_at ? new Date(m.created_at).toLocaleDateString() : ''}</span>
-              <span className="ml-auto flex gap-2">
-                <button className="rounded-md bg-cyan px-3 py-1.5 text-xs font-bold text-white" onClick={() => setMemberStatus(m.id, 'approved')}>Approve</button>
-                <button className="rounded-md bg-red-100 px-3 py-1.5 text-xs font-bold text-red-700" onClick={() => setMemberStatus(m.id, 'rejected')}>Reject</button>
-              </span>
+              {(m.status || 'pending') === 'pending' && (
+                <span className="ml-auto flex gap-2">
+                  <button className="rounded-md bg-cyan px-3 py-1.5 text-xs font-bold text-white" onClick={() => setMemberStatus(m.id, 'approved')}>Approve</button>
+                  <button className="rounded-md bg-red-100 px-3 py-1.5 text-xs font-bold text-red-700" onClick={() => setMemberStatus(m.id, 'rejected')}>Reject</button>
+                </span>
+              )}
+              {m.status === 'rejected' && (
+                <button className="ml-auto text-xs font-bold text-ink/40 hover:text-cyan hover:underline" onClick={() => setMemberStatus(m.id, 'approved')}>Approve after all</button>
+              )}
             </div>
           ))}
         </div>
