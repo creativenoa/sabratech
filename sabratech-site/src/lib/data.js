@@ -6,18 +6,36 @@ export const DEFAULT_CATEGORIES = [
   'Marketing & Growth', 'Sales & BizDev', 'Hardware & IoT', 'Other',
 ]
 
+// Directory reads go through the talents_directory view, which blanks the
+// contact fields a member chose to hide (Settings → Privacy). The base table
+// is private to admins, owners and business managers. Falls back to the base
+// table only if the view is missing (e.g. mid-deploy).
+const DIR = 'talents_directory'
+
 export async function fetchTalents(type) {
   if (!hasSupabase) return []
-  let q = supabase.from('talents').select('*').eq('published', true)
-  if (type) q = q.eq('type', type)
-  const { data, error } = await q.order('name')
+  const run = table => {
+    let q = supabase.from(table).select('*').eq('published', true)
+    if (type) q = q.eq('type', type)
+    return q.order('name')
+  }
+  let { data, error } = await run(DIR)
+  if (error) ({ data, error } = await run('talents'))
   return error ? [] : data || []
 }
 
 export async function fetchTalent(id) {
   if (!hasSupabase) return null
-  const { data } = await supabase.from('talents').select('*').eq('id', id).eq('published', true).maybeSingle()
+  let { data, error } = await supabase.from(DIR).select('*').eq('id', id).maybeSingle()
+  if (error) ({ data } = await supabase.from('talents').select('*').eq('id', id).eq('published', true).maybeSingle())
   return data
+}
+
+// Approved team of a business, for its public page.
+export async function fetchBusinessTeam(businessId) {
+  if (!hasSupabase) return []
+  const { data, error } = await supabase.from('business_team').select('*').eq('business_id', businessId)
+  return error ? [] : data || []
 }
 
 // Deterministic weekly rotation — same pick for everyone all week, no cron needed.
@@ -30,9 +48,12 @@ export function weeklyFeatured(talents) {
   return talents[seed % talents.length]
 }
 
+// Logged-in applicants own what they submit (so it shows up on their Profile page).
 export async function submitApplication(payload) {
   if (!hasSupabase) throw new Error('Database not connected')
-  const { error } = await supabase.from('talents').insert([{ ...payload, published: false, status: 'pending' }])
+  let owner_id = null
+  try { owner_id = (await supabase.auth.getSession())?.data?.session?.user?.id || null } catch { /* anonymous */ }
+  const { error } = await supabase.from('talents').insert([{ ...payload, ...(owner_id ? { owner_id } : {}), published: false, status: 'pending' }])
   if (error) throw error
 }
 

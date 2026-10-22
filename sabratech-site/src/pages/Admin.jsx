@@ -4,6 +4,8 @@ import { DEFAULT_CONTENT, uploadFile } from '../lib/data'
 import { Search, Close } from '../components/Icons'
 import AuthModal from '../components/AuthModal'
 import { useAuth, signOut } from '../lib/auth'
+import { adminSetOwner } from '../lib/account'
+import { TeamPanel } from './account/Profile'
 
 const EMPTY = {
   type: 'individual', name: '', first_name: '', last_name: '', title: '', company: '', bio: '', description: '',
@@ -33,6 +35,39 @@ const withSyncedName = t =>
 
 const displayName = t =>
   (t.type === 'individual' && fullName(t)) || t.name || ''
+
+// Admin override: who owns a listing (and, for businesses, its team).
+function OwnerPanel({ listing, members, onOwnerChanged }) {
+  const owner = members.find(m => m.id === listing.owner_id)
+  const [email, setEmail] = useState(owner?.email || '')
+  const [msg, setMsg] = useState(null)
+  const [showTeam, setShowTeam] = useState(false)
+  useEffect(() => { setEmail(owner?.email || '') }, [owner?.email])
+  const apply = async () => {
+    setMsg(null)
+    try { const uid = await adminSetOwner(listing.id, email.trim()); onOwnerChanged(uid || null); setMsg(['ok', email.trim() ? 'Owner set.' : 'Owner removed.']) }
+    catch (e) { setMsg(['error', e.message]) }
+  }
+  return (
+    <div className="mt-5 rounded-md border border-navy/10 bg-cream p-4">
+      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-ink/40">Owner</p>
+      <p className="mt-1 text-xs text-ink/50">The member who can edit this listing from their Profile page{listing.type === 'company' ? ' and approve people who ask to join' : ''}. Use the email they log in with.</p>
+      <div className="mt-2 flex flex-wrap gap-2">
+        <input className="input !py-2 flex-1 text-sm" list="admin-member-emails" placeholder="member@email.com (empty = no owner)" value={email} onChange={e => setEmail(e.target.value)} />
+        <datalist id="admin-member-emails">{members.map(m => <option key={m.id} value={m.email} />)}</datalist>
+        <button type="button" onClick={apply} className="rounded-md bg-navy px-4 py-2 text-xs font-bold text-white">Set owner</button>
+      </div>
+      {!owner && listing.owner_id && <p className="mt-2 text-xs text-ink/50">Owned by an account that is not in the members list.</p>}
+      {msg && <p className={`mt-2 text-xs font-bold ${msg[0] === 'error' ? 'text-red-700' : 'text-cyan'}`}>{msg[1]}</p>}
+      {listing.type === 'company' && listing.owner_id && (
+        <div className="mt-3">
+          <button type="button" onClick={() => setShowTeam(v => !v)} className="text-xs font-bold text-cyan hover:underline">{showTeam ? 'Hide team' : 'Manage team and join requests'}</button>
+          {showTeam && <div className="mt-3 rounded-md bg-white p-4"><TeamPanel biz={{ business_id: listing.id, name: listing.name, role: 'owner' }} /></div>}
+        </div>
+      )}
+    </div>
+  )
+}
 
 // ---------- Action-item banner ----------
 // One red line at a time under the header. When an item is handled it fades
@@ -179,7 +214,7 @@ export default function Admin() {
   )
 
   const save = async t => {
-    const { id, created_at, ...fields } = withSyncedName(t)
+    const { id, created_at, owner_id, ...fields } = withSyncedName(t)
     if (typeof fields.skills === 'string') fields.skills = fields.skills.split(',').map(s => s.trim()).filter(Boolean)
     const q = id ? supabase.from('talents').update(fields).eq('id', id) : supabase.from('talents').insert([fields])
     const { error } = await q
@@ -205,7 +240,7 @@ export default function Admin() {
   const toolKey = useRef(null)
 
   const autoSaveTalent = async t => {
-    const { id, created_at, ...fields } = withSyncedName(t)
+    const { id, created_at, owner_id, ...fields } = withSyncedName(t)
     if (typeof fields.skills === 'string') fields.skills = fields.skills.split(',').map(x => x.trim()).filter(Boolean)
     setMsg('Saving\u2026')
     if (id) {
@@ -733,7 +768,7 @@ export default function Admin() {
                 </div>
               </div>
               <div className="flex flex-wrap gap-4 rounded-md border border-navy/10 bg-cream p-3 text-sm font-semibold text-ink/70 sm:col-span-2">
-                {[['published', 'Published'], ['open_to_work', 'Open to work'], ['freelance', 'Freelance'], ['hiring', 'Hiring'], ['show_phone', 'Show phone'], ['show_email', 'Show email']].map(([k, label]) => (
+                {[['published', 'Published'], ['open_to_work', 'Open to work'], ['freelance', 'Freelance'], ['hiring', 'Hiring'], ['show_phone', 'Show phone'], ['show_email', 'Show email'], ['show_whatsapp', 'Show WhatsApp'], ['show_on_map', 'Show on map']].map(([k, label]) => (
                   <label key={k} className="flex items-center gap-2">
                     <input type="checkbox" className="h-4 w-4 accent-cyan" checked={!!editing[k]} onChange={e => setEditing(ed => ({ ...ed, [k]: e.target.checked }))} />
                     {label}
@@ -741,6 +776,7 @@ export default function Admin() {
                 ))}
               </div>
             </div>
+            {editing.id && <OwnerPanel listing={editing} members={members} onOwnerChanged={uid => setEditing(ed => ({ ...ed, owner_id: uid }))} />}
             <div className="mt-5 flex items-center gap-3">
               <button className="btn-accent !py-2.5 !text-sm" onClick={() => save({ ...editing, status: editing.status === 'pending' ? 'approved' : editing.status })}>Save</button>
               {editing.id && <button className="rounded-md bg-red-100 px-4 py-2.5 text-sm font-bold text-red-700" onClick={() => del(editing.id)}>Delete</button>}

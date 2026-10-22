@@ -8,6 +8,7 @@ import InstallPrompt from './InstallPrompt'
 import { useEffect } from 'react'
 import { fetchContent, txt, DEFAULT_CONTENT } from '../lib/data'
 import { useAuth, signOut } from '../lib/auth'
+import AccountMenu, { AlertBell, ACCOUNT_LINKS, memberDisplayName } from './AccountMenu'
 
 const NAV = [
   { to: '/', label: 'Home' },
@@ -27,7 +28,7 @@ export default function Layout() {
   const [authTab, setAuthTab] = useState(null)
   const [content, setContent] = useState(DEFAULT_CONTENT)
   const [scrolled, setScrolled] = useState(false)
-  const { isAuthed, user, profile, loading: authLoading } = useAuth()
+  const { isAuthed, isAdmin, user, profile, loading: authLoading } = useAuth()
   useEffect(() => { fetchContent().then(setContent) }, [])
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20)
@@ -36,7 +37,7 @@ export default function Layout() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  const memberName = (profile?.full_name || '').trim().split(' ')[0] || user?.email || 'Member'
+  const memberName = memberDisplayName(profile, user)
   const openAuth = tab => { setOpen(false); setAuthTab(tab) }
   const logOut = () => { setOpen(false); signOut().catch(() => {}) }
 
@@ -53,10 +54,10 @@ export default function Layout() {
             ))}
             <button onClick={() => setContact(true)} className="btn-outline !px-4 !py-2 !text-sm">Contact us</button>
             {authLoading ? null : isAuthed ? (
-              <>
-                <span className="max-w-[180px] truncate text-sm font-semibold text-navy">{memberName}</span>
-                <button onClick={logOut} className="text-sm font-semibold tracking-wide text-ink/50 transition hover:text-navy">Log out</button>
-              </>
+              <div className="flex items-center gap-1">
+                <AlertBell />
+                <AccountMenu />
+              </div>
             ) : (
               <>
                 <button onClick={() => openAuth('login')} className="text-sm font-semibold tracking-wide text-ink/70 transition hover:text-navy">Log in</button>
@@ -64,9 +65,12 @@ export default function Layout() {
               </>
             )}
           </nav>
-          <button className="text-navy md:hidden" onClick={() => setOpen(!open)} aria-label="Menu">
-            {open ? <Close className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </button>
+          <div className="flex items-center gap-2 md:hidden">
+            {!authLoading && isAuthed && <AlertBell />}
+            <button className="text-navy" onClick={() => setOpen(!open)} aria-label="Menu">
+              {open ? <Close className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
+          </div>
         </div>
         {open && (
           <nav className="border-t border-navy/10 bg-cream px-5 pb-5 pt-2 md:hidden">
@@ -82,7 +86,19 @@ export default function Layout() {
             </button>
             {authLoading ? null : isAuthed ? (
               <>
-                <p className="block truncate border-b border-navy/5 py-3.5 font-serif text-lg text-navy">{memberName}</p>
+                <p className="mt-3 truncate pb-1 text-xs font-semibold uppercase tracking-[0.2em] text-ink/40">{memberName}</p>
+                {ACCOUNT_LINKS.map(l => (
+                  <NavLink key={l.to} to={l.to} onClick={() => setOpen(false)}
+                    className={({ isActive }) => `block border-b border-navy/5 py-3.5 font-serif text-lg ${isActive ? 'text-cyan' : 'text-navy'}`}>
+                    {l.label}
+                  </NavLink>
+                ))}
+                {isAdmin && (
+                  <NavLink to="/admin" onClick={() => setOpen(false)}
+                    className={({ isActive }) => `block border-b border-navy/5 py-3.5 font-serif text-lg ${isActive ? 'text-cyan' : 'text-navy'}`}>
+                    Admin
+                  </NavLink>
+                )}
                 <button onClick={logOut}
                   className="block w-full border-b border-navy/5 py-3.5 text-left font-serif text-lg text-ink/50">
                   Log out

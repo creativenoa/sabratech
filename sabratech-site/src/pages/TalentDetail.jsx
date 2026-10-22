@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { fetchTalent, fetchTalents } from '../lib/data'
+import { fetchTalent, fetchTalents, fetchBusinessTeam } from '../lib/data'
 import TalentCard, { TalentImage, Badges } from '../components/TalentCard'
 import { Phone, Mail, Globe, Pin, ArrowBack, Whatsapp, Linkedin, Github, Download } from '../components/Icons'
 
@@ -21,6 +21,8 @@ export default function TalentDetail() {
   const [all, setAll] = useState([])
   useEffect(() => { fetchTalent(id).then(d => setT(d ?? null)) }, [id])
   useEffect(() => { fetchTalents().then(setAll) }, [])
+  const [team, setTeam] = useState([])
+  useEffect(() => { fetchBusinessTeam(id).then(setTeam) }, [id])
 
   if (t === undefined) return <p className="py-24 text-center text-ink/40">Loading…</p>
   if (!t) return (
@@ -41,9 +43,15 @@ export default function TalentDetail() {
   const employer = isPerson && t.company
     ? all.find(x => x.type === 'company' && norm(x.name) === norm(t.company))
     : null
+  // People who joined this business on SabraTech, plus anyone whose listing
+  // names it as their company (older listings, before teams existed).
+  const teamIds = new Set(team.map(m => String(m.individual_id)).filter(x => x !== 'null'))
   const employees = !isPerson
-    ? all.filter(x => x.type === 'individual' && norm(x.company) === norm(t.name))
+    ? all.filter(x => x.type === 'individual' && (teamIds.has(String(x.id)) || norm(x.company) === norm(t.name)))
     : []
+  const ROLE_LABEL = { owner: 'Owner', manager: 'Manager' }
+  const roleOf = pid => team.find(m => String(m.individual_id) === String(pid))?.role
+  const unlisted = team.filter(m => !m.individual_id)
 
   return (
     <div className="mx-auto max-w-[1080px] px-5 py-12">
@@ -117,11 +125,22 @@ export default function TalentDetail() {
             </>
           )}
 
-          {employees.length > 0 && (
+          {(employees.length > 0 || unlisted.length > 0) && (
             <div className={t.description ? 'mt-10' : ''}>
               <p className="kicker">Our people in the directory</p>
               <div className="mt-3 flex flex-col gap-3">
-                {employees.map(e => <TalentCard key={e.id} t={e} view="list" />)}
+                {employees.map(e => (
+                  <div key={e.id} className="relative">
+                    <TalentCard t={e} view="list" />
+                    {ROLE_LABEL[roleOf(e.id)] && <span className="badge pointer-events-none absolute right-3 top-3 bg-navy text-white">{ROLE_LABEL[roleOf(e.id)]}</span>}
+                  </div>
+                ))}
+                {unlisted.map((m, i) => (
+                  <div key={'u' + i} className="card flex items-center gap-3 !p-4">
+                    <span className="font-semibold text-navy">{m.member_name}</span>
+                    {ROLE_LABEL[m.role] && <span className="badge bg-navy text-white">{ROLE_LABEL[m.role]}</span>}
+                  </div>
+                ))}
               </div>
             </div>
           )}
@@ -144,7 +163,7 @@ export default function TalentDetail() {
 
         <div>
           <p className="kicker">Connect</p>
-          {t.address && (
+          {t.address && t.show_on_map !== false && (
             <p className="mt-4 flex items-center gap-2 text-sm font-semibold text-ink/60">
               <Pin className="h-4 w-4 text-cyan" /> {t.address}
             </p>
@@ -154,7 +173,7 @@ export default function TalentDetail() {
             {site && <ContactLink href={site} icon={Globe}>Website</ContactLink>}
             <ContactLink href={github} icon={Github}>GitHub</ContactLink>
             {t.show_phone && t.phone && <ContactLink href={`tel:${t.phone.replace(/\D/g, '')}`} icon={Phone}>Phone</ContactLink>}
-            <ContactLink href={t.whatsapp} icon={Whatsapp}>WhatsApp</ContactLink>
+            {t.show_whatsapp !== false && <ContactLink href={t.whatsapp} icon={Whatsapp}>WhatsApp</ContactLink>}
             {t.show_email && t.email && <ContactLink href={`mailto:${t.email.split(/[ ,]+/)[0]}`} icon={Mail}>Email</ContactLink>}
           </div>
         </div>

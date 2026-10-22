@@ -11,6 +11,10 @@ import Blog from './pages/Blog'
 import Admin from './pages/Admin'
 import Disclaimer from './pages/Disclaimer'
 import ResetPassword from './pages/ResetPassword'
+import MyAccount from './pages/account/MyAccount'
+import Profile from './pages/account/Profile'
+import Notifications from './pages/account/Notifications'
+import Settings from './pages/account/Settings'
 
 // Old /talent/:id links stay alive.
 function LegacyTalentRedirect() {
@@ -32,6 +36,10 @@ export default function App() {
         <Route path="/blog" element={<AuthGate><Blog /></AuthGate>} />
         <Route path="/admin" element={<Admin />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/account" element={<MyAccount />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/notifications" element={<Notifications />} />
+        <Route path="/settings" element={<Settings />} />
         <Route path="/disclaimer" element={<AuthGate><Disclaimer /></AuthGate>} />
         <Route path="*" element={<AuthGate><Home /></AuthGate>} />
       </Route>
