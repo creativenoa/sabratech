@@ -13,7 +13,7 @@ export default function Notifications() {
   const [notify, setNotify] = useState({})
   const [msg, setMsg] = useState(null)
 
-  useEffect(() => { fetchAlerts(100).then(setAlerts) }, [])
+  useEffect(() => { if (user?.id) fetchAlerts(100).then(setAlerts) }, [user?.id])
   useEffect(() => { setNotify(profile?.notify || {}) }, [profile?.notify])
 
   const open = async a => {

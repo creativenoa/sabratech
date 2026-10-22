@@ -17,7 +17,8 @@ export default function Settings() {
   const { user } = useAuth()
   const [row, setRow] = useState(undefined)
   const [msg, setMsg] = useState(null)
-  const load = useCallback(() => fetchMyIndividual(user.id).then(setRow).catch(() => setRow(null)), [user.id])
+  const uid = user?.id
+  const load = useCallback(() => { if (uid) fetchMyIndividual(uid).then(setRow).catch(() => setRow(null)) }, [uid])
   useEffect(() => { load() }, [load])
 
   const flip = async (key, value) => {
