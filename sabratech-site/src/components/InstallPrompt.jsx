@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 
-// "Install SabraTech on your device" bar (phone or desktop).
+// Install-the-app bar: "home screen" wording on phones, "app" wording on desktop.
 //
 // Two completely different mechanisms, because the platforms disagree:
 //   - Chrome / Edge / Android fire `beforeinstallprompt`, which we capture and
@@ -20,6 +20,10 @@ const isIOS = () =>
   /iphone|ipad|ipod/i.test(window.navigator.userAgent) ||
   // iPadOS 13+ reports itself as a Mac; the touch points give it away.
   (window.navigator.platform === 'MacIntel' && window.navigator.maxTouchPoints > 1)
+
+// Phones and tablets get "home screen" wording; desktops get "app" wording.
+const isMobile = () =>
+  isIOS() || /android|mobi/i.test(window.navigator.userAgent)
 
 export default function InstallPrompt() {
   const [deferred, setDeferred] = useState(null)
@@ -74,11 +78,15 @@ export default function InstallPrompt() {
       <div className="mx-auto flex max-w-[560px] items-center gap-3 rounded-md border border-navy/10 bg-white p-3 shadow-lg">
         <img src="/icon-192.png" alt="" className="h-11 w-11 shrink-0 rounded-md" />
         <div className="min-w-0 flex-1">
-          <p className="font-serif text-base leading-tight text-navy">Install SabraTech on your device</p>
+          <p className="font-serif text-base leading-tight text-navy">
+            {isMobile() ? 'Add SabraTech to your home screen' : 'Get the SabraTech app'}
+          </p>
           <p className="mt-0.5 text-sm leading-snug text-ink/60">
             {showIOS
               ? 'Tap the Share button, then "Add to Home Screen".'
-              : 'Open it like an app, in one click.'}
+              : isMobile()
+                ? 'Open it like an app, in one tap.'
+                : 'Install it on your computer. It opens in its own window.'}
           </p>
         </div>
         {deferred && (
