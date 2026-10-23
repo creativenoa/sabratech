@@ -24,9 +24,8 @@ function StatusBadge({ status }) {
 
 // ---------------- Individual ----------------
 function IndividualTab() {
-  const { user, profile } = useAuth()
+  const { user, profile, refreshListing } = useAuth()
   const [row, setRow] = useState(undefined)
-  const [creating, setCreating] = useState(false)
   const [msg, setMsg] = useState(null)
 
   const load = useCallback(() => fetchMyIndividual(user.id).then(setRow).catch(() => setRow(null)), [user.id])
@@ -34,22 +33,22 @@ function IndividualTab() {
 
   if (row === undefined) return <p className="py-10 text-center text-ink/40">Loading…</p>
 
+  // Every member must have a profile — this is the first thing after signup.
   if (!row) {
     const [first, ...rest] = (profile?.full_name || '').trim().split(' ')
-    return creating ? (
-      <Panel title="Create your individual listing" sub="It goes live in the directory once the site admin approves it.">
-        <ListingForm type="individual" submitLabel="Send for approval" onCancel={() => setCreating(false)}
+    return (
+      <Panel title="Welcome! Let's set up your profile"
+        sub="Your profile is your page in the SabraTech directory — your role, skills and how members can reach you. Finish it to enter the site. If you applied before with a different email, contact us and we'll link it to this account.">
+        <ListingForm type="individual" submitLabel={profile?.status === 'approved' ? 'Save my profile' : 'Save and send for approval'}
           initial={{ first_name: first || '', last_name: rest.join(' '), email: user.email }}
-          onSubmit={async f => { const r = await createListing(user.id, f); setRow(r); setCreating(false); setMsg(['ok', 'Sent for approval — we will let you know when it is live.']) }} />
-      </Panel>
-    ) : (
-      <Panel>
-        <div className="flex flex-col items-center gap-3 py-6 text-center">
-          <User className="h-10 w-10 text-navy/30" />
-          <p className="font-serif text-xl text-navy">You don't have an individual listing yet</p>
-          <p className="max-w-md text-sm text-ink/55">Your listing is your page in the directory — your role, skills and how people can reach you. If you applied before with a different email, ask us to link it to this account.</p>
-          <button onClick={() => setCreating(true)} className="btn-accent mt-2">Create my listing</button>
-        </div>
+          onSubmit={async f => {
+            const r = await createListing(user.id, f)
+            setRow(r); await refreshListing()
+            setMsg(['ok', profile?.status === 'approved'
+              ? 'Saved — your profile goes live once it is approved.'
+              : "You're all set. The SabraTech team will approve your membership and profile together — we'll let you know."])
+            window.scrollTo({ top: 0, behavior: 'smooth' })
+          }} />
       </Panel>
     )
   }
@@ -93,16 +92,25 @@ export function TeamPanel({ biz, onChanged }) {
       {msg && <Note kind={msg[0]}>{msg[1]}</Note>}
       <div>
         <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-ink/40">Requests to join ({pending.length})</p>
-        {pending.length === 0 ? <p className="text-sm text-ink/45">No requests waiting.</p> : pending.map(m => (
-          <div key={m.id} className="flex flex-wrap items-center gap-3 border-b border-navy/5 py-2.5">
-            <span className="font-semibold text-navy">{m.member_name}</span>
-            <span className="text-xs text-ink/45">{m.member_email}</span>
-            <span className="ml-auto flex gap-2">
-              <button onClick={() => act(() => respondJoin(m.id, true), `${m.member_name} joined the team.`)} className="rounded-md bg-cyan px-3 py-1.5 text-xs font-bold text-white">Approve</button>
-              <button onClick={() => act(() => respondJoin(m.id, false), 'Request declined.')} className="rounded-md bg-red-100 px-3 py-1.5 text-xs font-bold text-red-700">Decline</button>
-            </span>
-          </div>
-        ))}
+        {pending.length === 0 ? <p className="text-sm text-ink/45">No requests waiting.</p> : pending.map(m => {
+          const leader = m.requested_role === 'manager'
+          return (
+            <div key={m.id} className="flex flex-wrap items-center gap-3 border-b border-navy/5 py-2.5">
+              <span className="font-semibold text-navy">{m.member_name}</span>
+              {leader && <span className="badge bg-royal text-white">Company leadership</span>}
+              <span className="text-xs text-ink/45">{m.member_email}</span>
+              <span className="ml-auto flex flex-wrap gap-2">
+                {leader && isOwner && (
+                  <button onClick={() => act(() => respondJoin(m.id, true, 'manager'), `${m.member_name} joined as a manager.`)} className="rounded-md bg-cyan px-3 py-1.5 text-xs font-bold text-white">Approve as manager</button>
+                )}
+                <button onClick={() => act(() => respondJoin(m.id, true, 'employee'), `${m.member_name} joined the team.`)}
+                  className={`rounded-md px-3 py-1.5 text-xs font-bold ${leader ? 'bg-navy/10 text-navy' : 'bg-cyan text-white'}`}>{leader ? 'Approve as employee' : 'Approve'}</button>
+                <button onClick={() => act(() => respondJoin(m.id, false), 'Request declined.')} className="rounded-md bg-red-100 px-3 py-1.5 text-xs font-bold text-red-700">Decline</button>
+              </span>
+              {leader && !isOwner && <p className="w-full text-xs text-ink/45">Asked to be a manager — only the owner can approve that. You can approve them as an employee.</p>}
+            </div>
+          )
+        })}
       </div>
       <div>
         <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-ink/40">Team ({team.length})</p>
@@ -171,7 +179,7 @@ function BusinessCard({ biz, onChanged }) {
         <div className="min-w-0 flex-1">
           <p className="truncate font-serif text-lg text-navy">{biz.name}</p>
           <p className="mt-1 flex flex-wrap items-center gap-2">
-            {pendingMine ? <span className="badge bg-sand text-ink/70">Request sent</span> : <span className="badge bg-navy/10 text-navy">{ROLE[biz.role]}</span>}
+            {pendingMine ? <span className="badge bg-sand text-ink/70">{biz.requested_role === 'manager' ? 'Leadership request sent' : 'Request sent'}</span> : <span className="badge bg-navy/10 text-navy">{ROLE[biz.role]}</span>}
             {biz.listing_status !== 'approved' && <StatusBadge status={biz.listing_status} />}
             {editor && biz.pending_requests > 0 && <span className="badge bg-red-600 text-white">{biz.pending_requests} waiting to join</span>}
           </p>
@@ -200,6 +208,8 @@ function AddBusiness({ onChanged }) {
   const [searchedFor, setSearchedFor] = useState('')
   const [creating, setCreating] = useState(false)
   const [msg, setMsg] = useState(null)
+  const [picked, setPicked] = useState(null)
+  const [leader, setLeader] = useState(false)
   const timer = useRef(null)
 
   useEffect(() => {
@@ -215,9 +225,12 @@ function AddBusiness({ onChanged }) {
   const join = async b => {
     setMsg(null)
     try {
-      await requestJoin(b.id)
+      await requestJoin(b.id, leader)
       setResults(rs => rs.map(x => (x.id === b.id ? { ...x, my_status: 'pending', my_role: 'employee' } : x)))
-      setMsg(['ok', `Request sent — the owner of ${b.name} will review it.`])
+      setMsg(['ok', leader
+        ? `Request sent — the owner of ${b.name} will review adding you as a manager.`
+        : `Request sent — the owner of ${b.name} will review it.`])
+      setPicked(null); setLeader(false)
       onChanged()
     } catch (e) { setMsg(['error', e.message]) }
   }
@@ -240,19 +253,36 @@ function AddBusiness({ onChanged }) {
       {results && (
         <div className="mt-3 flex flex-col">
           {results.length === 0 && <p className="py-3 text-sm text-ink/50">No business matches “{searchedFor}”.</p>}
-          {results.map(b => (
-            <div key={b.id} className="flex flex-wrap items-center gap-3 border-b border-navy/5 py-3">
-              {b.photo_url ? <img src={b.photo_url} alt="" className="h-9 w-9 rounded-md object-cover" /> : <span className="grid h-9 w-9 place-items-center rounded-md bg-navy/5"><Building className="h-5 w-5 text-navy/30" /></span>}
-              <div className="min-w-0 flex-1">
-                <p className="truncate font-semibold text-navy">{b.name}</p>
-                <p className="truncate text-xs text-ink/45">{b.published ? b.title : 'Waiting for approval'}</p>
+          {results.map(b => {
+            const canAsk = !b.my_status || b.my_status === 'declined'
+            const open = picked === b.id
+            return (
+              <div key={b.id} className={`border-b border-navy/5 ${open ? 'rounded-md bg-cream' : ''}`}>
+                <button type="button" disabled={!canAsk} onClick={() => { setPicked(open ? null : b.id); setLeader(false) }}
+                  className="flex w-full flex-wrap items-center gap-3 px-2 py-3 text-left disabled:cursor-default">
+                  {b.photo_url ? <img src={b.photo_url} alt="" className="h-9 w-9 rounded-md object-cover" /> : <span className="grid h-9 w-9 place-items-center rounded-md bg-navy/5"><Building className="h-5 w-5 text-navy/30" /></span>}
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate font-semibold text-navy">{b.name}</span>
+                    <span className="block truncate text-xs text-ink/45">{b.published ? b.title : 'Waiting for approval'}</span>
+                  </span>
+                  {b.my_status === 'approved' ? <span className="badge bg-navy/10 text-navy">You're on the team</span>
+                    : b.my_status === 'pending' ? <span className="badge bg-sand text-ink/70">Request sent</span>
+                    : <span className="text-xs font-bold text-cyan">{open ? 'Selected' : 'This is my company'}</span>}
+                </button>
+                {open && (
+                  <div className="flex flex-wrap items-center gap-4 px-2 pb-4">
+                    <label className="flex items-center gap-2 text-sm font-semibold text-navy">
+                      <input type="checkbox" className="h-4 w-4 accent-cyan" checked={leader} onChange={e => setLeader(e.target.checked)} />
+                      I am Company Leadership
+                    </label>
+                    <span className="flex-1 text-xs text-ink/45">{leader ? 'The owner will be asked to add you as a manager (you can edit the listing and approve team requests).' : 'You will be added to the team once approved.'}</span>
+                    <button onClick={() => join(b)} disabled={!isApproved} title={isApproved ? '' : 'Available once your membership is approved'}
+                      className="rounded-md bg-cyan px-4 py-2 text-xs font-bold text-white disabled:opacity-40">Send request</button>
+                  </div>
+                )}
               </div>
-              {b.my_status === 'approved' ? <span className="badge bg-navy/10 text-navy">You're on the team</span>
-                : b.my_status === 'pending' ? <span className="badge bg-sand text-ink/70">Request sent</span>
-                : <button onClick={() => join(b)} disabled={!isApproved} title={isApproved ? '' : 'Available once your membership is approved'}
-                    className="rounded-md bg-cyan px-3 py-1.5 text-xs font-bold text-white disabled:opacity-40">Request to join</button>}
-            </div>
-          ))}
+            )
+          })}
           <div className="mt-4 flex flex-wrap items-center gap-3">
             <span className="text-sm text-ink/55">{results.length ? 'Not one of these?' : 'Not listed yet?'}</span>
             <button onClick={() => setCreating(true)} className="btn-outline !px-4 !py-2 !text-sm">Create “{searchedFor}”</button>

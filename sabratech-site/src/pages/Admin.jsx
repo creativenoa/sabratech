@@ -361,8 +361,8 @@ export default function Admin() {
     setMembers(ms => ms.map(m => m.id === id ? { ...m, status } : m))
     try {
       const { error } = await supabase.from('profiles').update({ status }).eq('id', id)
-      setMsg(error ? 'Member update failed: ' + error.message : status === 'approved' ? 'Member approved' : status === 'rejected' ? 'Member rejected' : 'Member updated')
-      loadMembers()
+      setMsg(error ? 'Member update failed: ' + error.message : status === 'approved' ? 'Member approved — their profile is live too' : status === 'rejected' ? 'Member rejected' : 'Member updated')
+      load()  // approving a member also publishes their profile, so refresh listings too
     } catch (err) {
       setMsg('Member update failed: ' + (err?.message || 'unknown error'))
       loadMembers()
@@ -384,9 +384,11 @@ export default function Admin() {
   const actionItems = [
     ...members.filter(m => m.status === 'pending').map(m => ({
       key: 'member:' + m.id, tab: 'members', rowId: 'member-' + m.id,
-      text: `New member waiting for approval: ${memberLabel(m)}`, cta: 'Approve member',
+      text: `New member waiting for approval: ${memberLabel(m)}${rows.some(r => r.owner_id === m.id && r.type === 'individual') ? '' : ' (profile not finished yet)'}`, cta: 'Approve member',
     })),
-    ...pending.map(t => ({
+    // A new member's own profile is approved together with the member, so it
+    // gets no banner of its own.
+    ...pending.filter(t => !(t.type === 'individual' && members.some(m => m.id === t.owner_id && m.status === 'pending'))).map(t => ({
       key: 'talent:' + t.id, tab: 'pending', rowId: 'talent-' + t.id,
       text: `New ${t.type === 'company' ? 'business' : 'individual'} listing waiting for approval: ${displayName(t) || 'untitled'}`,
       cta: t.type === 'company' ? 'Approve business' : 'Approve listing',
@@ -492,6 +494,9 @@ export default function Admin() {
               <strong className="text-navy">{m.full_name || 'No name'}</strong>
               <span className="text-xs text-ink/50">{m.email}</span>
               <span className="text-xs text-ink/40">{m.created_at ? new Date(m.created_at).toLocaleDateString() : ''}</span>
+              {rows.find(r => r.owner_id === m.id && r.type === 'individual') && (
+                <button className="text-xs font-bold text-cyan hover:underline" onClick={() => setEditing(rows.find(r => r.owner_id === m.id && r.type === 'individual'))}>View profile</button>
+              )}
               {(m.status || 'pending') === 'pending' && (
                 <span className="ml-auto flex gap-2">
                   <button className="rounded-md bg-cyan px-3 py-1.5 text-xs font-bold text-white" onClick={() => setMemberStatus(m.id, 'approved')}>Approve</button>

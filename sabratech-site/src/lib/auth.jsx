@@ -36,9 +36,22 @@ const ensureProfile = async user => {
   return loadProfile(user.id)
 }
 
+// The member's own individual listing (id/status only). Every member must
+// have one before using the site. undefined = couldn't check (never lock
+// anyone out on a network hiccup), null = none yet.
+const loadMyListing = async userId => {
+  if (!hasSupabase || !userId) return null
+  try {
+    const { data, error } = await supabase.from('talents').select('id, status, published')
+      .eq('owner_id', userId).eq('type', 'individual').limit(1)
+    return error ? undefined : data?.[0] || null
+  } catch { return undefined }
+}
+
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(null)
   const [profile, setProfile] = useState(null)
+  const [listing, setListing] = useState(undefined)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -48,9 +61,11 @@ export function AuthProvider({ children }) {
     const apply = async s => {
       let p = s?.user ? await loadProfile(s.user.id) : null
       if (s?.user && !p) p = await ensureProfile(s.user)
+      const l = s?.user ? await loadMyListing(s.user.id) : null
       if (!active) return
       setSession(s || null)
       setProfile(p)
+      setListing(l)
       setLoading(false)
     }
 
@@ -84,6 +99,12 @@ export function AuthProvider({ children }) {
     return p
   }
 
+  const refreshListing = async () => {
+    const l = await loadMyListing(session?.user?.id)
+    setListing(l)
+    return l
+  }
+
   const isAuthed = !!session
   const isApproved = profile?.status === 'approved'
   const isAdmin = isApproved && profile?.is_admin === true
@@ -97,6 +118,9 @@ export function AuthProvider({ children }) {
     isApproved,
     isAdmin,
     refreshProfile,
+    listing,
+    needsProfile: !!session && listing === null,
+    refreshListing,
     signUp,
     signIn,
     signOut,

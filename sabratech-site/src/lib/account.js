@@ -57,9 +57,9 @@ export async function updateListing(id, fields) {
 // ---------- businesses ----------
 export const myBusinesses = () => rpc('my_businesses')
 export const searchBusinesses = q => rpc('search_businesses', { q })
-export const requestJoin = bid => rpc('request_join_business', { bid })
+export const requestJoin = (bid, asLeader = false) => rpc('request_join_business', { bid, as_leader: !!asLeader })
 export const businessMembers = bid => rpc('business_members_detail', { bid })
-export const respondJoin = (memberId, approve) => rpc('respond_join_request', { member_id: memberId, approve })
+export const respondJoin = (memberId, approve, asRole) => rpc('respond_join_request', { member_id: memberId, approve, ...(asRole ? { as_role: asRole } : {}) })
 export const setMemberRole = (memberId, role) => rpc('set_business_member_role', { member_id: memberId, new_role: role })
 export const removeMember = memberId => rpc('remove_business_member', { member_id: memberId })
 export const transferOwnership = (bid, newOwner) => rpc('transfer_business_ownership', { bid, new_owner: newOwner })

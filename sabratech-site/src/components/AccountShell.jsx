@@ -7,7 +7,7 @@ import { ACCOUNT_LINKS } from './AccountMenu'
 // Frame for the four account pages: login required (pending members allowed —
 // they can still manage their account), side nav on desktop, tabs on phones.
 export default function AccountShell({ title, intro, children }) {
-  const { loading, isAuthed, profile } = useAuth()
+  const { loading, isAuthed, profile, needsProfile } = useAuth()
   const [modal, setModal] = useState(false)
 
   if (loading) return <div className="min-h-[60vh]" />
@@ -23,14 +23,14 @@ export default function AccountShell({ title, intro, children }) {
 
   return (
     <div className="mx-auto max-w-[1080px] px-5 py-10 md:py-14">
-      {profile?.status === 'pending' && (
+      {profile?.status === 'pending' && !needsProfile && (
         <p className="mb-6 rounded-md border border-cyan/30 bg-cyan/5 px-4 py-3 text-sm font-semibold text-navy">
           Your membership is waiting for approval. You can set up your account and listing now — the directory opens once you're approved.
         </p>
       )}
       <div className="grid gap-8 md:grid-cols-[200px_1fr]">
         <nav className="-mx-5 flex gap-1 overflow-x-auto px-5 md:mx-0 md:flex-col md:px-0">
-          {ACCOUNT_LINKS.map(({ to, label, icon: Icon }) => (
+          {ACCOUNT_LINKS.filter(l => !needsProfile || l.to === '/profile' || l.to === '/account').map(({ to, label, icon: Icon }) => (
             <NavLink key={to} to={to}
               className={({ isActive }) => `flex shrink-0 items-center gap-2.5 rounded-md px-3 py-2.5 text-sm font-bold transition ${isActive ? 'bg-navy text-white' : 'text-ink/60 hover:bg-white hover:text-navy'}`}>
               <Icon className="h-4 w-4" /> {label}

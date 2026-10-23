@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { NavLink, Outlet, Link } from 'react-router-dom'
+import { NavLink, Outlet, Link, Navigate, useLocation } from 'react-router-dom'
 import { Menu, Close, Linkedin } from './Icons'
 import SponsorModal from './SponsorModal'
 import ContactModal from './ContactModal'
@@ -17,6 +17,16 @@ const NAV = [
   { to: '/blog', label: 'Blog' },
   { to: '/about', label: 'About' },
 ]
+
+// Logged-in members must finish their individual profile before anything else.
+const OPEN_WHILE_ONBOARDING = ['/profile', '/account', '/reset-password', '/disclaimer']
+function ProfileGate({ children }) {
+  const { loading, needsProfile } = useAuth()
+  const { pathname, search } = useLocation()
+  if (!loading && needsProfile && !OPEN_WHILE_ONBOARDING.includes(pathname)) return <Navigate to="/profile" replace />
+  if (!loading && needsProfile && pathname === '/profile' && search.includes('tab=')) return <Navigate to="/profile" replace />
+  return children
+}
 
 const navClass = ({ isActive }) =>
   `border-b-2 pb-0.5 text-sm font-semibold tracking-wide transition ${isActive ? 'border-cyan text-royal' : 'border-transparent text-ink/70 hover:text-navy'}`
@@ -120,7 +130,7 @@ export default function Layout() {
         )}
       </header>
 
-      <main className="flex-1"><Outlet /></main>
+      <main className="flex-1"><ProfileGate><Outlet /></ProfileGate></main>
 
       <InstallPrompt />
 

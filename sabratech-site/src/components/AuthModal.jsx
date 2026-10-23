@@ -90,9 +90,9 @@ export default function AuthModal({ open, onClose, initialTab = 'login' }) {
           <div className="py-8 text-center">
             <p className="font-serif text-2xl text-navy">Your account was created</p>
             <p className="mt-3 leading-relaxed text-ink/60">
-              Your membership is awaiting approval. Once the SabraTech team approves it, you will get full access to the directory.
+              One more step: create your profile — your page in the directory. The SabraTech team then approves your membership and profile together.
             </p>
-            <button onClick={onClose} className="btn-primary mt-6">Got it</button>
+            <button onClick={onClose} className="btn-accent mt-6">Create my profile</button>
           </div>
         ) : (
           <>
