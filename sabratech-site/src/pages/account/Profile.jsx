@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import AccountShell, { Panel, Note } from '../../components/AccountShell'
 import ListingForm from '../../components/ListingForm'
 import { useAuth } from '../../lib/auth'
@@ -23,7 +23,7 @@ function StatusBadge({ status }) {
 }
 
 // ---------------- Individual ----------------
-function IndividualTab() {
+function IndividualTab({ onFirstSave }) {
   const { user, profile, refreshListing } = useAuth()
   const [row, setRow] = useState(undefined)
   const [msg, setMsg] = useState(null)
@@ -44,10 +44,8 @@ function IndividualTab() {
           onSubmit={async f => {
             const r = await createListing(user.id, f)
             setRow(r); await refreshListing()
-            setMsg(['ok', profile?.status === 'approved'
-              ? 'Saved — your profile goes live once it is approved.'
-              : "You're all set. The SabraTech team will approve your membership and profile together — we'll let you know."])
             window.scrollTo({ top: 0, behavior: 'smooth' })
+            onFirstSave?.()  // next onboarding step: the business
           }} />
       </Panel>
     )
@@ -293,7 +291,30 @@ function AddBusiness({ onChanged }) {
   )
 }
 
-function BusinessesTab() {
+// Second step of signup: shown once, right after the first profile is saved.
+function BusinessWelcome({ onDone, hasBusiness }) {
+  const { profile } = useAuth()
+  if (hasBusiness) return (
+    <div className="flex flex-wrap items-center gap-3 rounded-lg border border-cyan/30 bg-cyan/5 p-5">
+      <p className="flex-1 font-serif text-xl text-navy">You're all set!</p>
+      <button onClick={onDone} className="btn-accent !px-4 !py-2 !text-sm">{profile?.status === 'approved' ? 'Go to the directory' : 'Done'}</button>
+    </div>
+  )
+  return (
+    <div className="rounded-lg border border-cyan/30 bg-cyan/5 p-5">
+      <p className="font-serif text-xl text-navy">Profile saved! One last step: your business</p>
+      <p className="mt-1 text-sm text-ink/60">
+        Own a business or work at one? Search for it below — ask to join if it's already listed, or create it.
+        {profile?.status !== 'approved' && ' (Joining an existing business opens once your membership is approved; you can create one now.)'}
+      </p>
+      <button onClick={onDone} className="mt-3 text-sm font-bold text-cyan hover:underline">
+        {profile?.status === 'approved' ? "I'm not part of a business — skip to the directory" : "I'm not part of a business — skip"}
+      </button>
+    </div>
+  )
+}
+
+function BusinessesTab({ welcome, onWelcomeDone }) {
   const [list, setList] = useState(null)
   const [err, setErr] = useState('')
   const load = useCallback(() => myBusinesses().then(r => { setList(r || []); setErr('') }).catch(e => { setList([]); setErr(e.message) }), [])
@@ -301,6 +322,7 @@ function BusinessesTab() {
 
   return (
     <div className="flex flex-col gap-5">
+      {welcome && <BusinessWelcome onDone={onWelcomeDone} hasBusiness={!!list?.length} />}
       {err && <Note kind="error">{err}</Note>}
       {list === null ? <p className="py-6 text-center text-ink/40">Loading…</p>
         : list.length === 0 ? <p className="text-sm text-ink/55">You're not part of any business yet.</p>
@@ -312,8 +334,12 @@ function BusinessesTab() {
 
 export default function Profile() {
   const [params, setParams] = useSearchParams()
+  const navigate = useNavigate()
+  const { profile } = useAuth()
   const tab = params.get('tab') === 'businesses' ? 'businesses' : 'individual'
+  const welcome = params.get('welcome') === '1'
   const setTab = t => setParams(t === 'individual' ? {} : { tab: t }, { replace: true })
+  const finishWelcome = () => (profile?.status === 'approved' ? navigate('/search') : setParams({}, { replace: true }))
 
   return (
     <AccountShell title="Profile" intro="Your listings in the directory — you as a person, and the businesses you're part of.">
@@ -325,7 +351,9 @@ export default function Profile() {
           </button>
         ))}
       </div>
-      {tab === 'individual' ? <IndividualTab /> : <BusinessesTab />}
+      {tab === 'individual'
+        ? <IndividualTab onFirstSave={() => setParams({ tab: 'businesses', welcome: '1' }, { replace: true })} />
+        : <BusinessesTab welcome={welcome} onWelcomeDone={finishWelcome} />}
     </AccountShell>
   )
 }
