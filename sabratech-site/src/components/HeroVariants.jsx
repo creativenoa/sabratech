@@ -63,7 +63,7 @@ export function HeroSkyline({ kicker, line1, words, sub, cta }) {
         <p className="text-xs font-semibold uppercase tracking-[0.25em] text-cyan-bright">{kicker}</p>
         <Headline dark line1={line1} words={words} className="mx-auto mt-5 max-w-4xl text-[clamp(2.2rem,9vw,3.2rem)] md:text-7xl" />
         <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-white/80">{sub}</p>
-        <div className="mx-auto flex max-w-xl flex-col items-center [&>div]:w-full [&>div>div]:justify-center [&_p]:text-center">{cta}</div>
+        <div className="mx-auto flex min-h-[262px] w-full max-w-2xl flex-col items-center sm:min-h-[146px] [&>div]:w-full [&>div>div]:justify-center [&>form]:w-full [&_p]:text-center">{cta}</div>
       </div>
     </section>
   )

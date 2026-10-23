@@ -43,7 +43,8 @@ export default function Home() {
   return (
     <>
       {(() => {
-        const cta = authLoading ? <div className="mt-9 h-[96px]" /> : isApproved ? (
+        const cta = authLoading ? <div className="mt-9" /> : isApproved ? (
+            <div>
             <form onSubmit={go} className="card mt-9 flex max-w-2xl flex-col gap-3 !bg-white p-3 sm:flex-row sm:items-center">
               <select aria-label="I am looking for" className="input !w-full !border-0 !bg-cream !py-3 text-sm font-semibold sm:!w-44"
                 value={type} onChange={e => setType(e.target.value)}>
@@ -58,6 +59,8 @@ export default function Home() {
               </div>
               <button type="submit" className="btn-accent sm:!px-7">Search</button>
             </form>
+              <p className="mt-4 text-sm text-white/75">Search people and startups by name, role, skill or field.</p>
+            </div>
           ) : <HeroJoin dark />
         return <HeroSkyline kicker={txt(content,'home_hero_kicker')} line1={heroLine1} words={heroWords} sub={txt(content,'home_hero_sub')} cta={cta} />
       })()}
