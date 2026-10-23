@@ -1,4 +1,5 @@
-// Vercel serverless route: /api/push — phone (web push) alerts.
+// Vercel serverless route: /api/push — delivers alerts to phones (web push)
+// and by email (Resend). The name stayed /api/push for compatibility.
 //
 //   GET  /api/push                      → { publicKey }  (browser needs it to subscribe)
 //   POST /api/push { action: 'flush' }  → sends every queued alert to members' phones
@@ -13,7 +14,7 @@
 import { neon } from '@neondatabase/serverless'
 import webpush from 'web-push'
 
-const SITE = 'https://sabratech.vercel.app'
+const SITE = 'https://atlanta-sabra.tech'
 
 async function vapid(sql) {
   let rows = await sql`select value from app_secrets where key = 'vapid'`
@@ -25,6 +26,40 @@ async function vapid(sql) {
   const { publicKey, privateKey } = rows[0].value
   webpush.setVapidDetails(SITE, publicKey, privateKey)
   return publicKey
+}
+
+const esc = s => String(s || '').replace(/[<>&"]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c]))
+
+// Alert types whose email is OFF unless the member turns it on (could be
+// many emails a day as the community grows; Resend's free plan is 100/day).
+const EMAIL_OPT_IN = new Set(['new_members'])
+
+const alertEmail = a => {
+  const url = SITE + (a.link || '/notifications')
+  return `
+  <div style="font-family:Helvetica,Arial,sans-serif;color:#292929;line-height:1.6;max-width:520px">
+    <p style="font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:#00A5E0;margin:0 0 8px">SabraTech</p>
+    <h2 style="color:#28315E;margin:0 0 12px;font-size:20px">${esc(a.title)}</h2>
+    ${a.body ? `<p style="margin:0 0 20px;color:#555">${esc(a.body)}</p>` : ''}
+    <a href="${esc(url)}" style="display:inline-block;background:#00A5E0;color:#fff;text-decoration:none;font-weight:bold;padding:10px 18px;border-radius:6px">Open SabraTech</a>
+    <p style="margin-top:28px;font-size:12px;color:#999">You get this because of your alert settings.
+      <a href="${SITE}/notifications" style="color:#999">Change which emails you get</a>.</p>
+  </div>`
+}
+
+async function sendEmail(to, a) {
+  const { RESEND_API_KEY, CONTACT_FROM } = process.env
+  if (!RESEND_API_KEY || !to) return false
+  const r = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json', 'Idempotency-Key': 'alert-' + a.id + '-' + to },
+    body: JSON.stringify({
+      from: CONTACT_FROM || 'SabraTech <hello@atlanta-sabra.tech>',
+      to: [to], subject: a.title, html: alertEmail(a),
+      text: `${a.title}\n\n${a.body || ''}\n\n${SITE}${a.link || '/notifications'}`,
+    }),
+  }).catch(() => null)
+  return !!r?.ok
 }
 
 const toSub = s => ({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } })
@@ -76,17 +111,23 @@ export default async function handler(req, res) {
 
     const users = [...new Set(batch.map(b => b.user_id))]
     const subs = await sql`select * from push_subscriptions where user_id = any(${users})`
-    const prefs = await sql`select id, notify from profiles where id = any(${users})`
-    const wants = (uid, kind) => (prefs.find(p => p.id === uid)?.notify?.[kind]?.push) !== false
+    const prefs = await sql`select id, email, notify from profiles where id = any(${users})`
+    const pref = (uid, kind, ch) => prefs.find(p => p.id === uid)?.notify?.[kind]?.[ch]
+    const wantsPush = (uid, kind) => pref(uid, kind, 'push') !== false
+    const wantsEmail = (uid, kind) => (EMAIL_OPT_IN.has(kind) ? pref(uid, kind, 'email') === true : pref(uid, kind, 'email') !== false)
 
-    let sent = 0
+    let sent = 0, emailed = 0
     for (const a of batch) {
-      if (!wants(a.user_id, a.kind)) continue
-      for (const s of subs.filter(x => x.user_id === a.user_id)) {
-        if (await send(sql, s, { title: a.title, body: a.body || '', url: a.link || '/notifications', tag: 'alert-' + a.id })) sent++
+      if (wantsPush(a.user_id, a.kind)) {
+        for (const s of subs.filter(x => x.user_id === a.user_id)) {
+          if (await send(sql, s, { title: a.title, body: a.body || '', url: a.link || '/notifications', tag: 'alert-' + a.id })) sent++
+        }
+      }
+      if (wantsEmail(a.user_id, a.kind)) {
+        if (await sendEmail(prefs.find(p => p.id === a.user_id)?.email, a)) emailed++
       }
     }
-    return res.status(200).json({ ok: true, sent })
+    return res.status(200).json({ ok: true, sent, emailed })
   } catch (e) {
     return res.status(200).json({ ok: false, error: e?.message || 'push failed' })
   }

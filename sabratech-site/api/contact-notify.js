@@ -40,7 +40,7 @@ export default async function handler(req, res) {
         <hr style="border:none;border-top:1px solid #D9D9D9;margin:20px 0" />
         <p style="white-space:pre-wrap">${esc(message)}</p>
         <p style="margin-top:24px;font-size:12px;color:#888">
-          Sent from sabratech.vercel.app — also saved in Admin → Contact.
+          Sent from atlanta-sabra.tech — also saved in Admin → Contact.
         </p>
       </div>`
 

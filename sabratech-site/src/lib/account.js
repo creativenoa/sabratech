@@ -103,11 +103,15 @@ export const ALERT_TYPES = [
 ]
 export const CHANNELS = [
   { key: 'site', label: 'On the site', mobileLabel: 'In app', live: true },
-  // soon: shown greyed out with a "Coming soon" watermark until the site has its own email domain.
-  { key: 'email', label: 'Email', live: false, soon: true },
+  { key: 'email', label: 'Email', live: true },
   { key: 'push', label: 'Phone', live: true },
 ]
-export const prefOn = (notify, type, channel) => notify?.[type]?.[channel] !== false
+// "New in the directory" emails are opt-in (they could add up fast); everything else defaults on.
+const OPT_IN = { new_members: ['email'] }
+export const prefOn = (notify, type, channel) => {
+  const v = notify?.[type]?.[channel]
+  return OPT_IN[type]?.includes(channel) ? v === true : v !== false
+}
 
 export async function saveNotify(userId, notify) {
   need()

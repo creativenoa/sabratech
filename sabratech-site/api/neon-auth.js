@@ -18,8 +18,10 @@ export default async function handler(req, res) {
     const headers = { accept: 'application/json' }
     if (req.headers['content-type']) headers['content-type'] = req.headers['content-type']
     if (req.headers.cookie) headers.cookie = req.headers.cookie
-    // The auth service validates this against its trusted-origins list.
-    headers.origin = 'https://sabratech.vercel.app'
+    // The auth service validates this against its trusted-origins list
+    // (both addresses are trusted in Neon Auth).
+    const TRUSTED = ['https://atlanta-sabra.tech', 'https://sabratech.vercel.app']
+    headers.origin = TRUSTED.includes(req.headers.origin) ? req.headers.origin : 'https://sabratech.vercel.app'
 
     let body
     if (req.method !== 'GET' && req.method !== 'HEAD') {
