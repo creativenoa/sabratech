@@ -41,6 +41,11 @@ export default function Layout() {
   const [scrolled, setScrolled] = useState(false)
   const { isAuthed, isAdmin, user, profile, loading: authLoading } = useAuth()
   useEffect(() => { fetchContent().then(setContent) }, [])
+  // Freeze the page behind the open mobile menu.
+  useEffect(() => {
+    document.body.style.overflow = open ? 'hidden' : ''
+    return () => { document.body.style.overflow = '' }
+  }, [open])
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20)
     onScroll()
@@ -83,8 +88,19 @@ export default function Layout() {
             </button>
           </div>
         </div>
-        {open && (
-          <nav className="border-t border-navy/10 bg-cream px-5 pb-5 pt-2 md:hidden">
+      </header>
+
+      {/* Mobile menu: slides in from the right, under the ☰ button. Lives outside the
+          header because the header's blur effect would trap a fixed panel inside it. */}
+      <div className={`fixed inset-0 z-[1200] md:hidden ${open ? '' : 'pointer-events-none'}`} aria-hidden={!open}>
+        <div onClick={() => setOpen(false)}
+          className={`absolute inset-0 bg-navy/40 transition-opacity duration-300 ${open ? 'opacity-100' : 'opacity-0'}`} />
+        <nav className={`absolute inset-y-0 right-0 flex w-[82%] max-w-sm flex-col overflow-y-auto bg-cream px-5 pb-8 pt-4 shadow-[-12px_0_40px_-12px_rgba(40,49,94,0.35)] transition-transform duration-300 ${open ? 'translate-x-0' : 'translate-x-full'}`}>
+          <div className="flex justify-end pb-2">
+            <button className="text-navy" onClick={() => setOpen(false)} aria-label="Close menu">
+              <Close className="h-6 w-6" />
+            </button>
+          </div>
             {NAV.map(n => (
               <NavLink key={n.to} to={n.to} end={n.to === '/'} onClick={() => setOpen(false)}
                 className={({ isActive }) => `block border-b border-navy/5 py-3.5 font-serif text-lg ${isActive ? 'text-cyan' : 'text-navy'}`}>
@@ -128,8 +144,7 @@ export default function Layout() {
               </>
             )}
           </nav>
-        )}
-      </header>
+      </div>
 
       <main className="flex-1"><ProfileGate><Outlet /></ProfileGate></main>
 

@@ -9,12 +9,22 @@ const TYPES = [['', 'All'], ['company', 'Startups'], ['individual', 'Individuals
 const VIEWS = [['gallery', 'Gallery'], ['list', 'List']]
 const PINNED_CATS = ['Entrepreneur', 'Startup', 'Investor', 'Mentor']
 
+// Browser storage can be blocked (private mode etc.) — never let that break the page.
+function readPref(store, key, fallback) {
+  try { return store.getItem(key) ?? fallback } catch { return fallback }
+}
+function writePref(store, key, value) {
+  try { store.setItem(key, value) } catch { /* ignore */ }
+}
+
 export default function Search() {
   const [params, setParams] = useSearchParams()
   const [talents, setTalents] = useState([])
   const [loading, setLoading] = useState(true)
-  const [view, setView] = useState('gallery')
-  const [showMap, setShowMap] = useState(true)
+  // Gallery/List + Map on/off are remembered on this device; search text and
+  // filters are remembered until the browser tab closes.
+  const [view, setView] = useState(() => readPref(localStorage, 'sabra.search.view', 'gallery'))
+  const [showMap, setShowMap] = useState(() => readPref(localStorage, 'sabra.search.map', 'on') !== 'off')
   const [cats, setCats] = useState(DEFAULT_CATEGORIES)
   const [content, setContent] = useState(DEFAULT_CONTENT)
 
@@ -22,6 +32,16 @@ export default function Search() {
   const cat = params.get('cat') || ''
   const type = params.get('type') || ''
   const flag = params.get('flag') || ''
+
+  // Arriving with no filters in the address → bring back this tab's last ones.
+  useEffect(() => {
+    if ([...params.keys()].length) return
+    const saved = readPref(sessionStorage, 'sabra.search.filters', '')
+    if (saved) setParams(new URLSearchParams(saved), { replace: true })
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { writePref(sessionStorage, 'sabra.search.filters', params.toString()) }, [params])
+  useEffect(() => { writePref(localStorage, 'sabra.search.view', view) }, [view])
+  useEffect(() => { writePref(localStorage, 'sabra.search.map', showMap ? 'on' : 'off') }, [showMap])
 
   useEffect(() => {
     fetchTalents().then(t => { setTalents(t); setLoading(false) })

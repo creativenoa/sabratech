@@ -15,6 +15,19 @@ function ContactLink({ href, icon: Icon, children }) {
   )
 }
 
+// WhatsApp is often saved as a bare number ("404-555-1234"). A bare number used as a
+// link points at a page on our own site ("Profile not found"), so turn it into wa.me.
+// 10 digits = US number → add the +1 country code.
+function whatsappHref(v) {
+  if (!v) return null
+  const s = String(v).trim()
+  if (/^https?:\/\//i.test(s)) return s
+  if (/^(wa\.me|api\.whatsapp\.com|chat\.whatsapp\.com)\//i.test(s)) return 'https://' + s
+  let digits = s.replace(/\D/g, '')
+  if (digits.length === 10) digits = '1' + digits
+  return digits.length >= 8 ? `https://wa.me/${digits}` : null
+}
+
 const ROLE_NAMES = { owner: 'Owner', manager: 'Manager' }
 
 // A person or business as a small clickable pill (photo/logo + name + role).
@@ -205,7 +218,7 @@ export default function TalentDetail() {
             {site && <ContactLink href={site} icon={Globe}>Website</ContactLink>}
             <ContactLink href={github} icon={Github}>GitHub</ContactLink>
             {t.show_phone && t.phone && <ContactLink href={`tel:${t.phone.replace(/\D/g, '')}`} icon={Phone}>Phone</ContactLink>}
-            {t.show_whatsapp !== false && <ContactLink href={t.whatsapp} icon={Whatsapp}>WhatsApp</ContactLink>}
+            {t.show_whatsapp !== false && <ContactLink href={whatsappHref(t.whatsapp)} icon={Whatsapp}>WhatsApp</ContactLink>}
             {t.show_email && t.email && <ContactLink href={`mailto:${t.email.split(/[ ,]+/)[0]}`} icon={Mail}>Email</ContactLink>}
           </div>
         </div>

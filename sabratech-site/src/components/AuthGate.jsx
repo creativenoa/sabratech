@@ -17,6 +17,30 @@ const MESSAGES = {
   },
 }
 
+// Grey stand-in shapes behind the "Members only" card. Contains no real data.
+function GatePlaceholder() {
+  return (
+    <div aria-hidden="true" className="pointer-events-none select-none blur-[3px]">
+      <div className="mx-auto max-w-[1080px] px-5 py-14">
+        <div className="h-3 w-24 rounded bg-navy/15" />
+        <div className="mt-4 h-9 w-72 max-w-full rounded bg-navy/20" />
+        <div className="mt-8 h-12 w-full rounded-md bg-navy/10" />
+        <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="rounded-md border border-navy/10 bg-white p-5">
+              <div className="h-16 w-16 rounded-full bg-navy/10" />
+              <div className="mt-4 h-4 w-3/4 rounded bg-navy/15" />
+              <div className="mt-2 h-3 w-1/2 rounded bg-navy/10" />
+              <div className="mt-4 h-3 w-full rounded bg-navy/5" />
+              <div className="mt-2 h-3 w-5/6 rounded bg-navy/5" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function AuthGate({ children }) {
   const { loading, isAuthed, isApproved, profile } = useAuth()
   const [modal, setModal] = useState(null)
@@ -30,7 +54,8 @@ export default function AuthGate({ children }) {
 
   return (
     <div className="relative">
-      <div aria-hidden="true" className="pointer-events-none select-none blur-[6px]">{children}</div>
+      {/* Placeholder only — the real page is never loaded for non-members. */}
+      <GatePlaceholder />
 
       <div className="pointer-events-none fixed inset-0 z-[1500] grid place-items-center p-5">
         <div className="card pointer-events-auto w-full max-w-md !bg-white p-8 text-center shadow-[0_24px_70px_-24px_rgba(40,49,94,0.45)]">

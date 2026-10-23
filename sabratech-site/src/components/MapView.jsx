@@ -15,8 +15,8 @@ export default function MapView({ talents, height = '46vh' }) {
     <div className="overflow-hidden rounded-md border border-navy/15 bg-white">
       <MapContainer center={[33.89, -84.3]} zoom={10} style={{ height, width: '100%' }} scrollWheelZoom={false} className="map-brand">
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
-          url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         {withCoords.map(t => (
           <Marker key={t.id} position={[t.lat, t.lng]} icon={PINS[t.type] || PINS.individual}>

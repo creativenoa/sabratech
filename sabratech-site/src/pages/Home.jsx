@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
-import { fetchTalents, fetchCategories, fetchContent, weeklyFeatured, txt, DEFAULT_CATEGORIES, DEFAULT_CONTENT } from '../lib/data'
+import { fetchTalents, fetchDirectoryCounts, fetchCategories, fetchContent, weeklyFeatured, txt, DEFAULT_CATEGORIES, DEFAULT_CONTENT } from '../lib/data'
 import { TalentImage, Badges } from '../components/TalentCard'
 import { Search, Arrow } from '../components/Icons'
 import LoginCard from '../components/LoginCard'
@@ -16,14 +16,12 @@ export default function Home() {
   const [featured, setFeatured] = useState(null)
   const [content, setContent] = useState(DEFAULT_CONTENT)
 
+  // Everyone sees the two counts; only approved members load actual listings.
+  useEffect(() => { fetchDirectoryCounts().then(c => c && setStats(c)) }, [])
   useEffect(() => {
-    fetchTalents().then(ts => {
-      setStats({
-        companies: ts.filter(t => t.type === 'company').length,
-        individuals: ts.filter(t => t.type === 'individual').length,
-      })
-      setFeatured(weeklyFeatured(ts))
-    })
+    if (isApproved) fetchTalents().then(ts => setFeatured(weeklyFeatured(ts)))
+  }, [isApproved])
+  useEffect(() => {
     fetchCategories().then(setCats)
     fetchContent().then(setContent)
   }, [])

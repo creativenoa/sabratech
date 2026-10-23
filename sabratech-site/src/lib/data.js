@@ -25,6 +25,13 @@ export async function fetchTalents(type) {
   return error ? [] : data || []
 }
 
+// Public homepage numbers (no names) — works for logged-out visitors.
+export async function fetchDirectoryCounts() {
+  if (!hasSupabase) return null
+  const { data, error } = await supabase.rpc('directory_counts')
+  return error || !data ? null : { companies: data.companies ?? 0, individuals: data.individuals ?? 0 }
+}
+
 export async function fetchTalent(id) {
   if (!hasSupabase) return null
   let { data, error } = await supabase.from(DIR).select('*').eq('id', id).maybeSingle()
