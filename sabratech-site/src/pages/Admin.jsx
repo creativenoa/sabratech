@@ -6,6 +6,7 @@ import AuthModal from '../components/AuthModal'
 import { useAuth, signOut } from '../lib/auth'
 import { adminSetOwner } from '../lib/account'
 import { TeamPanel } from './account/Profile'
+import SkillsInput from '../components/SkillsInput'
 
 const EMPTY = {
   type: 'individual', name: '', first_name: '', last_name: '', title: '', company: '', bio: '', description: '',
@@ -728,9 +729,9 @@ export default function Admin() {
                 <textarea rows={4} className="input" value={editing.description || ''} onChange={e => setEditing(ed => ({ ...ed, description: e.target.value }))} />
               </div>
               <div className="sm:col-span-2">
-                <label className="label">Skills (comma-separated)</label>
-                <input className="input" value={Array.isArray(editing.skills) ? editing.skills.join(', ') : editing.skills || ''}
-                  onChange={e => setEditing(ed => ({ ...ed, skills: e.target.value }))} />
+                <SkillsInput id="admin-skills" label="Skills"
+                  value={Array.isArray(editing.skills) ? editing.skills : String(editing.skills || '').split(',').map(x => x.trim()).filter(Boolean)}
+                  onChange={v => setEditing(ed => ({ ...ed, skills: v }))} placeholder="React, Python, AWS, AI…" />
               </div>
               <div>
                 <label className="label">Photo / logo</label>
