@@ -14,7 +14,7 @@
  * Bump CACHE_VERSION to force every client to drop its old cache.
  */
 
-const CACHE_VERSION = 'sabratech-v4'
+const CACHE_VERSION = 'sabratech-v5'
 const OFFLINE_URL = '/index.html'
 
 self.addEventListener('install', event => {
@@ -87,4 +87,35 @@ self.addEventListener('fetch', event => {
       })
       .catch(() => caches.match(request).then(hit => hit || Response.error()))
   )
+})
+
+// ---------- Phone alerts (web push) ----------
+self.addEventListener('push', event => {
+  let data = {}
+  try { data = event.data ? event.data.json() : {} } catch { data = { title: event.data && event.data.text() } }
+  const title = data.title || 'SabraTech'
+  event.waitUntil(self.registration.showNotification(title, {
+    body: data.body || '',
+    icon: '/icon-192.png',
+    badge: '/icon-192.png',
+    tag: data.tag,
+    data: { url: data.url || '/notifications' },
+  }))
+})
+
+// Tapping an alert opens (or focuses) the site at the alert's page.
+self.addEventListener('notificationclick', event => {
+  event.notification.close()
+  const target = new URL(event.notification.data?.url || '/notifications', self.location.origin).href
+  event.waitUntil((async () => {
+    const wins = await self.clients.matchAll({ type: 'window', includeUncontrolled: true })
+    for (const w of wins) {
+      if (new URL(w.url).origin === self.location.origin) {
+        await w.focus()
+        if ('navigate' in w) return w.navigate(target)
+        return
+      }
+    }
+    return self.clients.openWindow(target)
+  })())
 })

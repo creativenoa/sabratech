@@ -4,7 +4,51 @@ import AccountShell, { Panel, Note, Toggle } from '../../components/AccountShell
 import { useAuth } from '../../lib/auth'
 import { fetchAlerts, markRead, deleteAlert, ALERT_TYPES, CHANNELS, prefOn, saveNotify } from '../../lib/account'
 import { pingAlerts } from '../../components/AccountMenu'
-import { Close } from '../../components/Icons'
+import { Close, Bell } from '../../components/Icons'
+import { pushState, enablePush, disablePush, sendTestPush } from '../../lib/push'
+
+// Turn phone alerts on/off for THIS device (each phone or computer separately).
+function PhoneAlerts({ userId }) {
+  const [state, setState] = useState(null)
+  const [busy, setBusy] = useState(false)
+  const [msg, setMsg] = useState(null)
+  const refresh = () => pushState().then(setState).catch(() => setState('unsupported'))
+  useEffect(() => { refresh() }, [])
+
+  const run = async (fn, ok) => {
+    setBusy(true); setMsg(null)
+    try { await fn(); setMsg(['ok', ok]) } catch (e) { setMsg(['error', e.message]) }
+    finally { setBusy(false); refresh() }
+  }
+
+  const text = {
+    'ios-install': ['On iPhone, phone alerts need the SabraTech app on your home screen.', 'In Safari, tap the Share button, then "Add to Home Screen". Open SabraTech from the new icon and come back to this page.'],
+    unsupported: ['This browser can\'t show phone alerts.', 'Try Chrome or Edge, or the SabraTech app on your home screen.'],
+    denied: ['Alerts are blocked for SabraTech on this device.', 'Allow notifications for this site in your browser or phone settings, then reload this page.'],
+    off: ['Phone alerts are off on this device.', 'Turn them on to get alerts even when SabraTech is closed.'],
+    on: ['Phone alerts are on for this device.', 'Use the Phone switches below to choose which alerts you get.'],
+  }[state] || ['Checking this device…', '']
+
+  return (
+    <Panel>
+      <div className="flex flex-wrap items-center gap-4">
+        <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-full ${state === 'on' ? 'bg-cyan text-white' : 'bg-navy/5 text-navy/40'}`}><Bell className="h-5 w-5" /></span>
+        <div className="min-w-0 flex-1">
+          <p className="font-semibold text-navy">{text[0]}</p>
+          <p className="text-sm text-ink/55">{text[1]}</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {state === 'off' && <button disabled={busy} onClick={() => run(async () => { await enablePush(userId); await sendTestPush().catch(() => {}) }, 'Done — you should see a test alert now.')} className="btn-accent !px-4 !py-2 !text-sm disabled:opacity-50">{busy ? 'Turning on…' : 'Turn on phone alerts'}</button>}
+          {state === 'on' && <>
+            <button disabled={busy} onClick={() => run(sendTestPush, 'Test alert sent.')} className="btn-outline !px-4 !py-2 !text-sm disabled:opacity-50">Send a test</button>
+            <button disabled={busy} onClick={() => run(disablePush, 'Phone alerts turned off for this device.')} className="rounded-md px-3 py-2 text-sm font-bold text-ink/50 hover:text-red-600">Turn off</button>
+          </>}
+        </div>
+      </div>
+      {msg && <div className="mt-3"><Note kind={msg[0]}>{msg[1]}</Note></div>}
+    </Panel>
+  )
+}
 
 export default function Notifications() {
   const { user, profile, isAdmin, refreshProfile } = useAuth()
@@ -68,6 +112,8 @@ export default function Notifications() {
             )}
         </Panel>
 
+        <PhoneAlerts userId={user?.id} />
+
         <Panel title="How to reach me" sub="Choose which alerts you get, and where.">
           {msg && <div className="mb-3"><Note kind={msg[0]}>{msg[1]}</Note></div>}
           <div className="overflow-x-auto">
@@ -75,7 +121,11 @@ export default function Notifications() {
               <thead>
                 <tr className="text-left text-xs uppercase tracking-[0.15em] text-ink/40">
                   <th className="pb-3 font-semibold">Alert</th>
-                  {CHANNELS.map(c => <th key={c.key} className={`w-24 pb-3 text-center font-semibold ${c.soon ? 'text-ink/25' : ''}`}>{c.label}</th>)}
+                  {CHANNELS.map(c => (
+                    <th key={c.key} className={`w-24 pb-3 text-center font-semibold ${c.soon ? 'text-ink/25' : ''}`}>
+                      {c.mobileLabel ? <><span className="md:hidden">{c.mobileLabel}</span><span className="hidden md:inline">{c.label}</span></> : c.label}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody>

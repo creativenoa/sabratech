@@ -57,7 +57,7 @@ function IndividualTab() {
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center gap-3">
         <StatusBadge status={row.status} />
-        {row.published && <Link to={`/individual/${row.id}`} className="text-sm font-bold text-cyan hover:underline">View my page</Link>}
+        {row.published && <Link to={`/individual/${row.id}`} state={{ backTo: '/profile', backLabel: 'Back to Profile' }} className="text-sm font-bold text-cyan hover:underline">View my page</Link>}
         <span className="text-xs text-ink/45">{row.status === 'approved' ? 'Changes go live as soon as you save.' : 'You can keep editing while it waits for approval.'}</span>
       </div>
       {msg && <Note kind={msg[0]}>{msg[1]}</Note>}
@@ -185,7 +185,7 @@ function BusinessCard({ biz, onChanged }) {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          {biz.published && <Link to={`/individual/${biz.business_id}`} className="rounded-md px-3 py-1.5 text-xs font-bold text-cyan hover:underline">View</Link>}
+          {biz.published && <Link to={`/individual/${biz.business_id}`} state={{ backTo: '/profile?tab=businesses', backLabel: 'Back to Profile' }} className="rounded-md px-3 py-1.5 text-xs font-bold text-cyan hover:underline">View</Link>}
           {editor && <button onClick={() => setOpen(o => (o === 'edit' ? null : 'edit'))} className={`rounded-md px-3 py-1.5 text-xs font-bold ${open === 'edit' ? 'bg-navy text-white' : 'bg-navy/5 text-navy'}`}>Edit listing</button>}
           {editor && <button onClick={() => setOpen(o => (o === 'team' ? null : 'team'))} className={`rounded-md px-3 py-1.5 text-xs font-bold ${open === 'team' ? 'bg-navy text-white' : 'bg-navy/5 text-navy'}`}>Team</button>}
           {biz.role !== 'owner' && <button onClick={leave} className="rounded-md px-3 py-1.5 text-xs font-bold text-red-600 hover:underline">{pendingMine ? 'Cancel request' : 'Leave'}</button>}

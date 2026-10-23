@@ -5,6 +5,7 @@ import { Search, Close } from '../components/Icons'
 import AuthModal from '../components/AuthModal'
 import { useAuth, signOut } from '../lib/auth'
 import { adminSetOwner } from '../lib/account'
+import { flushPush } from '../lib/push'
 import { TeamPanel } from './account/Profile'
 import SkillsInput from '../components/SkillsInput'
 
@@ -354,6 +355,7 @@ export default function Admin() {
     const { error } = await supabase.from('talents').update({ status, published }).eq('id', t.id)
     setMsg(error ? 'Update failed: ' + error.message : status === 'approved' ? 'Approved' : 'Rejected')
     load()
+    flushPush({ force: true })
   }
   const approve = t => setTalentStatus(t, 'approved', true)
   const reject = t => setTalentStatus(t, 'rejected', false)
@@ -364,6 +366,7 @@ export default function Admin() {
       const { error } = await supabase.from('profiles').update({ status }).eq('id', id)
       setMsg(error ? 'Member update failed: ' + error.message : status === 'approved' ? 'Member approved — their profile is live too' : status === 'rejected' ? 'Member rejected' : 'Member updated')
       load()  // approving a member also publishes their profile, so refresh listings too
+      flushPush({ force: true })
     } catch (err) {
       setMsg('Member update failed: ' + (err?.message || 'unknown error'))
       loadMembers()

@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { supabase, hasSupabase } from './supabase'
+import { flushPush } from './push'
 
 const AuthContext = createContext(null)
 
@@ -155,6 +156,7 @@ export async function signUp({ email, password, fullName }) {
         full_name: name,
       }])
     } catch { /* AuthProvider self-heals a missing row on next load */ }
+    flushPush({ force: true }) // tells admins about the new member
   }
   notifyAuthChange()
   return data

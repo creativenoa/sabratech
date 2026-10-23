@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth, signOut } from '../lib/auth'
 import { countUnread, fetchAlerts, markRead } from '../lib/account'
+import { flushPush } from '../lib/push'
 import { Bell, Chevron, User, Building, Cog, Shield, Logout } from './Icons'
 
 export const ACCOUNT_LINKS = [
@@ -67,7 +68,7 @@ export function AlertBell() {
   useEffect(() => {
     if (!isAuthed) return
     let alive = true
-    const refresh = () => countUnread().then(n => { if (alive) setUnread(n) })
+    const refresh = () => { flushPush(); return countUnread().then(n => { if (alive) setUnread(n) }) }
     refresh()
     const id = setInterval(refresh, 60000)
     window.addEventListener(ALERTS_EVENT, refresh)

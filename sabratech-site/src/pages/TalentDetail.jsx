@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useLocation } from 'react-router-dom'
 import { fetchTalent, fetchTalents, fetchBusinessTeam } from '../lib/data'
 import TalentCard, { TalentImage, Badges } from '../components/TalentCard'
 import { Phone, Mail, Globe, Pin, ArrowBack, Whatsapp, Linkedin, Github, Download } from '../components/Icons'
@@ -17,6 +17,9 @@ function ContactLink({ href, icon: Icon, children }) {
 
 export default function TalentDetail() {
   const { id } = useParams()
+  // Opened from the Profile page? Offer the way back there instead of the directory.
+  const { state } = useLocation()
+  const back = state?.backTo ? { to: state.backTo, label: state.backLabel || 'Back' } : { to: '/search', label: 'Back to the directory' }
   const [t, setT] = useState(undefined)
   const [all, setAll] = useState([])
   useEffect(() => { fetchTalent(id).then(d => setT(d ?? null)) }, [id])
@@ -55,9 +58,9 @@ export default function TalentDetail() {
 
   return (
     <div className="mx-auto max-w-[1080px] px-5 py-12">
-      <Link to="/search" className="inline-flex items-center gap-2 text-sm font-semibold text-ink/50 transition hover:text-cyan">
+      <Link to={back.to} className="inline-flex items-center gap-2 text-sm font-semibold text-ink/50 transition hover:text-cyan">
         <ArrowBack className="h-4 w-4" />
-        Back to the directory
+        {back.label}
       </Link>
 
       {/* Resume-style header */}

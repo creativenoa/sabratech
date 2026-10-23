@@ -2,6 +2,7 @@
 // Permission rules live in the database (sabratech-account-2026-10-22.sql);
 // these helpers just call them and turn errors into plain messages.
 import { supabase, hasSupabase } from './supabase'
+import { flushPush } from './push'
 
 const need = () => { if (!hasSupabase) throw new Error('Database not connected') }
 const plain = error => {
@@ -11,7 +12,8 @@ const plain = error => {
   return m
 }
 const unwrap = ({ data, error }) => { if (error) throw new Error(plain(error)); return data }
-const rpc = async (fn, args) => { need(); return unwrap(await supabase.rpc(fn, args)) }
+// Most RPCs create alerts (join requests, approvals…), so nudge phone delivery after each.
+const rpc = async (fn, args) => { need(); const out = unwrap(await supabase.rpc(fn, args)); flushPush(); return out }
 
 // ---------- listings ----------
 export const LISTING_FIELDS = [
@@ -43,6 +45,7 @@ export async function createListing(userId, fields) {
   need()
   const row = withName({ ...pick(fields), owner_id: userId, status: 'pending', published: false })
   const data = unwrap(await supabase.from('talents').insert([row]).select('*'))
+  flushPush({ force: true })
   return data?.[0]
 }
 
@@ -99,10 +102,10 @@ export const ALERT_TYPES = [
   { key: 'admin_alerts', label: 'Admin: items waiting for you', desc: 'New members and listings waiting for approval.', channels: ['site', 'email', 'push'], adminOnly: true },
 ]
 export const CHANNELS = [
-  { key: 'site', label: 'On the site', live: true },
+  { key: 'site', label: 'On the site', mobileLabel: 'In app', live: true },
   // soon: shown greyed out with a "Coming soon" watermark until the site has its own email domain.
   { key: 'email', label: 'Email', live: false, soon: true },
-  { key: 'push', label: 'Phone', live: false, note: 'Coming soon — install SabraTech on your phone to get these' },
+  { key: 'push', label: 'Phone', live: true },
 ]
 export const prefOn = (notify, type, channel) => notify?.[type]?.[channel] !== false
 

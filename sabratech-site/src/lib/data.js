@@ -1,4 +1,5 @@
 import { supabase, hasSupabase } from './supabase'
+import { flushPush } from './push'
 
 export const DEFAULT_CATEGORIES = [
   'Software Development', 'Data & AI', 'Cybersecurity', 'Cloud & DevOps',
@@ -55,6 +56,7 @@ export async function submitApplication(payload) {
   try { owner_id = (await supabase.auth.getSession())?.data?.session?.user?.id || null } catch { /* anonymous */ }
   const { error } = await supabase.from('talents').insert([{ ...payload, ...(owner_id ? { owner_id } : {}), published: false, status: 'pending' }])
   if (error) throw error
+  flushPush({ force: true })
 }
 
 export async function submitSponsorInquiry(payload) {
@@ -67,6 +69,7 @@ export async function submitContactInquiry(payload) {
   if (!hasSupabase) throw new Error('Database not connected')
   const { error } = await supabase.from('contact_inquiries').insert([payload])
   if (error) throw error
+  flushPush({ force: true })
   // Best effort notification. The message is already stored, so a mail
   // failure must never surface as a submit failure to the visitor.
   try {
