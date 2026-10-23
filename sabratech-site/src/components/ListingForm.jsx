@@ -150,7 +150,7 @@ export default function ListingForm({ type, initial, onSubmit, submitLabel = 'Sa
         <div className="flex items-center gap-4">
           {(photo || form.photo_url) && (
             <img src={preview || fileUrl(form.photo_url)} alt=""
-              className={`h-16 w-16 shrink-0 object-cover ${isPerson ? 'rounded-full' : 'rounded-md'}`} />
+              className={`h-16 w-16 shrink-0 ${isPerson ? 'rounded-full object-cover' : 'rounded-md border border-navy/10 bg-white object-contain p-1'}`} />
           )}
           <input id="lf-photo" type="file" accept="image/*" aria-label={LT('photo')}
             className="input !py-2.5 file:mr-3 file:rounded-md file:border-0 file:bg-navy file:px-4 file:py-1.5 file:text-sm file:font-semibold file:text-cream"

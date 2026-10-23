@@ -11,12 +11,16 @@ export function posStyle(t) {
 // Member photos are members-only files: always shown through fileUrl().
 // If one cannot be shown (not allowed / missing), the placeholder icon appears.
 // width/height give the browser the shape up front so nothing jumps on load.
+// Logos are never cropped: fit the whole logo inside the frame on white.
+export const LOGO_FIT = 'h-full w-full bg-white object-contain p-[8%]'
+const isLogo = t => t.type === 'company'
+
 export function TalentImage({ t, className, round = false }) {
   const radius = round ? { borderRadius: '50%' } : { borderRadius: 6 }
   const [broken, setBroken] = useState(null)
   if (t.photo_url && broken !== t.photo_url) return (
     <div style={radius} className={`${className} overflow-hidden`}>
-      <img src={fileUrl(t.photo_url)} alt={t.name} style={posStyle(t)} className="h-full w-full object-cover"
+      <img src={fileUrl(t.photo_url)} alt={t.name} style={isLogo(t) ? undefined : posStyle(t)} className={isLogo(t) ? LOGO_FIT : 'h-full w-full object-cover'}
         width={400} height={400} loading="lazy" decoding="async" onError={() => setBroken(t.photo_url)} />
     </div>
   )
@@ -69,7 +73,7 @@ export default function TalentCard({ t, view }) {
       className="group flex flex-col overflow-hidden rounded-md shadow-[0_10px_30px_-12px_rgba(40,49,94,0.35)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_18px_44px_-12px_rgba(40,49,94,0.5)]">
       <div className="relative">
         {showPhoto
-          ? <div className="h-44 w-full overflow-hidden bg-white"><img src={fileUrl(t.photo_url)} alt={t.name} style={posStyle(t)} className="h-full w-full object-cover"
+          ? <div className="h-44 w-full overflow-hidden bg-white"><img src={fileUrl(t.photo_url)} alt={t.name} style={isLogo(t) ? undefined : posStyle(t)} className={isLogo(t) ? LOGO_FIT : 'h-full w-full object-cover'}
               width={600} height={352} loading="lazy" decoding="async" onError={() => setBroken(t.photo_url)} /></div>
           : <div className="grid h-44 w-full place-items-center bg-sand">
               {t.type === 'company' ? <Building className="h-14 w-14 text-navy/40" /> : <User className="h-14 w-14 text-navy/40" />}

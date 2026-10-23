@@ -717,7 +717,7 @@ export default function Admin() {
               </div>
               <div>
                 <label className="label">Photo / logo</label>
-                {editing.photo_url && <img src={fileUrl(editing.photo_url)} alt="" className="mb-2 h-20 w-20 rounded-md object-cover" />}
+                {editing.photo_url && <img src={fileUrl(editing.photo_url)} alt="" className={`mb-2 h-20 w-20 rounded-md ${editing.type === 'company' ? 'border border-navy/10 bg-white object-contain p-1' : 'object-cover'}`} />}
                 <input type="file" accept="image/*" className="input !py-2 text-sm" onChange={async e => {
                   const f = e.target.files?.[0]; if (!f) return
                   const url = await uploadFile('talent-photos', f)

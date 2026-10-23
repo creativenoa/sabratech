@@ -36,7 +36,7 @@ function EntityPill({ to, name, photo, role, sub, kind }) {
   const inner = (
     <>
       {photo
-        ? <img src={fileUrl(photo)} alt="" width={28} height={28} loading="lazy" decoding="async" className={`h-7 w-7 shrink-0 object-cover ${kind === 'company' ? 'rounded-md' : 'rounded-full'}`} />
+        ? <img src={fileUrl(photo)} alt="" width={28} height={28} loading="lazy" decoding="async" className={`h-7 w-7 shrink-0 ${kind === 'company' ? 'rounded-md border border-navy/10 bg-white object-contain p-0.5' : 'rounded-full object-cover'}`} />
         : <span className={`grid h-7 w-7 shrink-0 place-items-center bg-white ${kind === 'company' ? 'rounded-md' : 'rounded-full'}`}><Icon className="h-4 w-4 text-navy/40" /></span>}
       <span className="min-w-0 text-left leading-tight">
         <span className="block truncate text-sm font-bold">{name}</span>
