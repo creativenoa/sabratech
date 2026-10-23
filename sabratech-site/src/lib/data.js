@@ -32,6 +32,13 @@ export async function fetchTalent(id) {
   return data
 }
 
+// Businesses a person belongs to (approved team member), for their page.
+export async function fetchMemberBusinesses(individualId) {
+  if (!hasSupabase) return []
+  const { data, error } = await supabase.from('member_businesses').select('*').eq('individual_id', individualId)
+  return error ? [] : data || []
+}
+
 // Approved team of a business, for its public page.
 export async function fetchBusinessTeam(businessId) {
   if (!hasSupabase) return []

@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams, useLocation } from 'react-router-dom'
-import { fetchTalent, fetchTalents, fetchBusinessTeam } from '../lib/data'
-import TalentCard, { TalentImage, Badges } from '../components/TalentCard'
-import { Phone, Mail, Globe, Pin, ArrowBack, Whatsapp, Linkedin, Github, Download } from '../components/Icons'
+import { fetchTalent, fetchTalents, fetchBusinessTeam, fetchMemberBusinesses } from '../lib/data'
+import { TalentImage, Badges } from '../components/TalentCard'
+import { Building, User, Phone, Mail, Globe, Pin, ArrowBack, Whatsapp, Linkedin, Github, Download } from '../components/Icons'
 
 function ContactLink({ href, icon: Icon, children }) {
   if (!href) return null
@@ -13,6 +13,28 @@ function ContactLink({ href, icon: Icon, children }) {
       {children}
     </a>
   )
+}
+
+const ROLE_NAMES = { owner: 'Owner', manager: 'Manager' }
+
+// A person or business as a small clickable pill (photo/logo + name + role).
+function EntityPill({ to, name, photo, role, sub, kind }) {
+  const Icon = kind === 'company' ? Building : User
+  const inner = (
+    <>
+      {photo
+        ? <img src={photo} alt="" className={`h-7 w-7 shrink-0 object-cover ${kind === 'company' ? 'rounded-md' : 'rounded-full'}`} />
+        : <span className={`grid h-7 w-7 shrink-0 place-items-center bg-white ${kind === 'company' ? 'rounded-md' : 'rounded-full'}`}><Icon className="h-4 w-4 text-navy/40" /></span>}
+      <span className="min-w-0 text-left leading-tight">
+        <span className="block truncate text-sm font-bold">{name}</span>
+        {(sub || ROLE_NAMES[role]) && <span className="block truncate text-[11px] font-semibold opacity-70">{[ROLE_NAMES[role], sub].filter(Boolean).join(' · ')}</span>}
+      </span>
+    </>
+  )
+  const cls = 'inline-flex max-w-[260px] items-center gap-2 rounded-full bg-cyan/10 py-1 pl-1 pr-4 text-royal'
+  return to
+    ? <Link to={to} className={`${cls} transition hover:bg-cyan hover:text-white`}>{inner}</Link>
+    : <span className={cls}>{inner}</span>
 }
 
 export default function TalentDetail() {
@@ -26,6 +48,8 @@ export default function TalentDetail() {
   useEffect(() => { fetchTalents().then(setAll) }, [])
   const [team, setTeam] = useState([])
   useEffect(() => { fetchBusinessTeam(id).then(setTeam) }, [id])
+  const [memberOf, setMemberOf] = useState([])
+  useEffect(() => { fetchMemberBusinesses(id).then(setMemberOf) }, [id])
 
   if (t === undefined) return <p className="py-24 text-center text-ink/40">Loading…</p>
   if (!t) return (
@@ -56,6 +80,19 @@ export default function TalentDetail() {
   const roleOf = pid => team.find(m => String(m.individual_id) === String(pid))?.role
   const unlisted = team.filter(m => !m.individual_id)
 
+  // Person page: their businesses as pills (team memberships, plus the
+  // company named on their listing if it's in the directory).
+  const bizPills = isPerson ? [
+    ...memberOf.map(m => ({ id: m.business_id, name: m.business_name, photo: m.business_photo, role: m.role })),
+    ...(employer && !memberOf.some(m => String(m.business_id) === String(employer.id))
+      ? [{ id: employer.id, name: employer.name, photo: employer.photo_url }] : []),
+  ] : []
+  // Business page: its people as pills.
+  const peoplePills = !isPerson ? [
+    ...employees.map(e => ({ id: e.id, name: e.name, photo: e.photo_url, title: e.title, role: roleOf(e.id) })),
+    ...unlisted.map(m => ({ id: null, name: m.member_name, role: m.role })),
+  ] : []
+
   return (
     <div className="mx-auto max-w-[1080px] px-5 py-12">
       <Link to={back.to} className="inline-flex items-center gap-2 text-sm font-semibold text-ink/50 transition hover:text-cyan">
@@ -80,14 +117,17 @@ export default function TalentDetail() {
                     {t.company && (
                       <span className="text-ink/50">
                         {' at '}
-                        {employer
-                          ? <Link to={`/individual/${employer.id}`} className="font-semibold text-cyan transition hover:text-royal">{t.company}</Link>
-                          : t.company}
+                        {t.company}
                       </span>
                     )}
                   </>
                 ) : t.title}
               </p>
+            )}
+            {bizPills.length > 0 && (
+              <div className="mt-3 flex flex-wrap items-center justify-center gap-2 md:justify-start">
+                {bizPills.map(b => <EntityPill key={'b' + b.id} to={`/individual/${b.id}`} name={b.name} photo={b.photo} role={b.role} kind="company" />)}
+              </div>
             )}
             {t.bio && <p className="mt-4 leading-relaxed text-ink/70">{t.bio}</p>}
             <div className="mt-4 flex flex-wrap items-center justify-center gap-2 md:justify-start">
@@ -128,22 +168,11 @@ export default function TalentDetail() {
             </>
           )}
 
-          {(employees.length > 0 || unlisted.length > 0) && (
+          {peoplePills.length > 0 && (
             <div className={t.description ? 'mt-10' : ''}>
               <p className="kicker">Our people in the directory</p>
-              <div className="mt-3 flex flex-col gap-3">
-                {employees.map(e => (
-                  <div key={e.id} className="relative">
-                    <TalentCard t={e} view="list" />
-                    {ROLE_LABEL[roleOf(e.id)] && <span className="badge pointer-events-none absolute right-3 top-3 bg-navy text-white">{ROLE_LABEL[roleOf(e.id)]}</span>}
-                  </div>
-                ))}
-                {unlisted.map((m, i) => (
-                  <div key={'u' + i} className="card flex items-center gap-3 !p-4">
-                    <span className="font-semibold text-navy">{m.member_name}</span>
-                    {ROLE_LABEL[m.role] && <span className="badge bg-navy text-white">{ROLE_LABEL[m.role]}</span>}
-                  </div>
-                ))}
+              <div className="mt-3 flex flex-wrap gap-2">
+                {peoplePills.map((p, i) => <EntityPill key={'p' + (p.id ?? 'u' + i)} to={p.id ? `/individual/${p.id}` : null} name={p.name} photo={p.photo} role={p.role} sub={p.title} kind="individual" />)}
               </div>
             </div>
           )}
