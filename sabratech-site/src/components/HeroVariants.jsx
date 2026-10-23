@@ -59,7 +59,7 @@ export function HeroSkyline({ kicker, line1, words, sub, cta }) {
       <div aria-hidden="true"
         className={`pointer-events-none absolute inset-x-0 bottom-0 h-[55%] bg-[url('/hero-skyline.webp')] bg-contain bg-bottom bg-repeat-x transition-opacity duration-700 md:h-[70%] ${skylineReady ? 'opacity-[0.12]' : 'opacity-0'}`} />
       <div aria-hidden="true" className="pointer-events-none absolute -right-40 -top-40 h-[520px] w-[520px] rounded-full bg-cyan/25 blur-[120px]" />
-      <div className="relative mx-auto max-w-[1080px] px-5 pb-24 pt-16 text-center md:pb-36 md:pt-24">
+      <div className="relative mx-auto max-w-[1080px] px-5 pb-24 pt-20 text-center md:pb-36 md:pt-32">
         <p className="text-xs font-semibold uppercase tracking-[0.25em] text-cyan-bright">{kicker}</p>
         <Headline dark line1={line1} words={words} className="mx-auto mt-5 max-w-4xl text-[clamp(2.2rem,9vw,3.2rem)] md:text-7xl" />
         <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-white/80">{sub}</p>
