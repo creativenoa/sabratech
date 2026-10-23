@@ -100,7 +100,8 @@ export const ALERT_TYPES = [
 ]
 export const CHANNELS = [
   { key: 'site', label: 'On the site', live: true },
-  { key: 'email', label: 'Email', live: false, note: 'Starts once email sending is set up' },
+  // soon: shown greyed out with a "Coming soon" watermark until the site has its own email domain.
+  { key: 'email', label: 'Email', live: false, soon: true },
   { key: 'push', label: 'Phone', live: false, note: 'Coming soon — install SabraTech on your phone to get these' },
 ]
 export const prefOn = (notify, type, channel) => notify?.[type]?.[channel] !== false

@@ -75,17 +75,27 @@ export default function Notifications() {
               <thead>
                 <tr className="text-left text-xs uppercase tracking-[0.15em] text-ink/40">
                   <th className="pb-3 font-semibold">Alert</th>
-                  {CHANNELS.map(c => <th key={c.key} className="w-24 pb-3 text-center font-semibold">{c.label}</th>)}
+                  {CHANNELS.map(c => <th key={c.key} className={`w-24 pb-3 text-center font-semibold ${c.soon ? 'text-ink/25' : ''}`}>{c.label}</th>)}
                 </tr>
               </thead>
               <tbody>
-                {types.map(t => (
+                {types.map((t, row) => (
                   <tr key={t.key} className="border-t border-navy/5">
                     <td className="py-3 pr-4">
                       <p className="font-semibold text-navy">{t.label}</p>
                       <p className="text-xs text-ink/50">{t.desc}</p>
                     </td>
-                    {CHANNELS.map(c => (
+                    {CHANNELS.map(c => c.soon ? (
+                      // One greyed-out cell spanning the whole column, watermarked "Coming soon".
+                      row === 0 ? (
+                        <td key={c.key} rowSpan={types.length} aria-label={`${c.label}: coming soon`}
+                          className="relative select-none bg-navy/[0.04] text-center align-middle">
+                          <span className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden">
+                            <span className="-rotate-90 whitespace-nowrap text-sm font-black uppercase tracking-[0.35em] text-navy/30">Coming soon</span>
+                          </span>
+                        </td>
+                      ) : null
+                    ) : (
                       <td key={c.key} className="py-3 text-center">
                         {t.channels.includes(c.key)
                           ? <span className="inline-flex"><Toggle checked={prefOn(notify, t.key, c.key)} onChange={v => flip(t.key, c.key, v)} label={`${t.label} — ${c.label}`} /></span>
@@ -98,7 +108,7 @@ export default function Notifications() {
             </table>
           </div>
           <ul className="mt-4 flex flex-col gap-1 text-xs text-ink/45">
-            {CHANNELS.filter(c => !c.live).map(c => <li key={c.key}><strong className="text-ink/60">{c.label}:</strong> {c.note}. Your choices are saved now and take effect then.</li>)}
+            {CHANNELS.filter(c => !c.live && !c.soon).map(c => <li key={c.key}><strong className="text-ink/60">{c.label}:</strong> {c.note}. Your choices are saved now and take effect then.</li>)}
           </ul>
         </Panel>
       </div>
