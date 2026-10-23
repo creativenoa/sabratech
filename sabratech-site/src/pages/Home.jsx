@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { fetchTalents, fetchDirectoryCounts, fetchCategories, fetchContent, weeklyFeatured, txt, DEFAULT_CATEGORIES, DEFAULT_CONTENT } from '../lib/data'
 import { TalentImage, Badges } from '../components/TalentCard'
 import { Search, Arrow } from '../components/Icons'
-import LoginCard from '../components/LoginCard'
+import { HeroSkyline, HeroJoin } from '../components/HeroVariants'
 import { useAuth } from '../lib/auth'
 
 export default function Home() {
@@ -42,24 +42,9 @@ export default function Home() {
 
   return (
     <>
-      <section className="border-b border-navy/10 bg-[linear-gradient(to_bottom,#F5F5F5_0%,#F5F5F5_70%,#FFFFFF_100%)]">
-        <div className="mx-auto max-w-[1080px] px-5 pb-16 pt-24 md:pb-24 md:pt-40">
-          <div className="max-w-4xl">
-            <p className="kicker">{txt(content,'home_hero_kicker')}</p>
-            <h1 className="mt-5 break-words font-serif text-[clamp(2rem,9vw,3rem)] font-600 leading-[1.12] tracking-[-0.02em] text-ink md:text-7xl">
-              {heroLine1 && <span className="block">{heroLine1}</span>}
-              <span className="block">
-                {heroWords.slice(0, -1).join(' ')}{' '}
-                <span className="text-cyan">{heroWords.slice(-1)}</span>
-              </span>
-            </h1>
-            <p className="mt-6 max-w-xl text-lg leading-relaxed text-ink/70">{txt(content,'home_hero_sub')}</p>
-          </div>
-
-          {authLoading ? (
-            <div className="mt-10 h-[78px] max-w-2xl" />
-          ) : isApproved ? (
-            <form onSubmit={go} className="card mt-10 flex max-w-2xl flex-col gap-3 !bg-white p-3 sm:flex-row sm:items-center">
+      {(() => {
+        const cta = authLoading ? <div className="mt-9 h-[96px]" /> : isApproved ? (
+            <form onSubmit={go} className="card mt-9 flex max-w-2xl flex-col gap-3 !bg-white p-3 sm:flex-row sm:items-center">
               <select aria-label="I am looking for" className="input !w-full !border-0 !bg-cream !py-3 text-sm font-semibold sm:!w-44"
                 value={type} onChange={e => setType(e.target.value)}>
                 <option value="">Everyone</option>
@@ -73,26 +58,31 @@ export default function Home() {
               </div>
               <button type="submit" className="btn-accent sm:!px-7">Search</button>
             </form>
-          ) : (
-            <LoginCard />
-          )}
-        </div>
-      </section>
+          ) : <HeroJoin dark />
+        return <HeroSkyline kicker={txt(content,'home_hero_kicker')} line1={heroLine1} words={heroWords} sub={txt(content,'home_hero_sub')} cta={cta} />
+      })()}
 
-      <section className="border-b border-navy/10 bg-white">
-        <div className="mx-auto grid max-w-[1080px] grid-cols-2 divide-x divide-navy/10 px-5">
-          {[
-            [stats.companies, 'Israeli startups'],
-            [stats.individuals, 'Individual', 'Entrepreneur, tech executive, investor, etc.'],
-          ].map(([n, t, sub]) => (
-            <div key={t} className="py-10 text-center">
-              <p className="font-serif text-4xl text-cyan md:text-5xl">{n}</p>
-              <p className="mt-2 text-xs font-semibold uppercase tracking-[0.2em] text-ink/50">{t}</p>
-              {sub && <p className="mt-1 text-[11px] leading-snug text-ink/40">{sub}</p>}
+      {(() => {
+        // Only show a count once it is above zero (Noa, 2026-10-23).
+        const items = [
+          [stats.companies, 'Israeli startups', 'Israeli startup'],
+          [stats.individuals, 'Individuals', 'Individual', 'Entrepreneur, tech executive, investor, etc.'],
+        ].filter(([n]) => typeof n === 'number' && n > 0)
+        if (!items.length) return null
+        return (
+          <section className="border-b border-navy/10 bg-white">
+            <div className={`mx-auto grid max-w-[1080px] divide-x divide-navy/10 px-5 ${items.length === 2 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+              {items.map(([n, many, one, sub]) => (
+                <div key={many} className="py-10 text-center">
+                  <p className="font-serif text-4xl text-cyan md:text-5xl">{n}</p>
+                  <p className="mt-2 text-xs font-semibold uppercase tracking-[0.2em] text-ink/50">{n === 1 ? one : many}</p>
+                  {sub && <p className="mt-1 text-[11px] leading-snug text-ink/40">{sub}</p>}
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      </section>
+          </section>
+        )
+      })()}
 
       {isApproved && featured && (
         <section className="mx-auto max-w-[1080px] px-5 py-16">

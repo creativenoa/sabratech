@@ -3,9 +3,9 @@ import { useEffect, useRef } from 'react'
 // Ambient "network of talent" backdrop: drifting nodes joined by hairlines,
 // gently repelled by the cursor. Sits behind all content, never interactive.
 const NAVY = '40,49,94'
-const CYAN = '0,165,224'
+const CYAN = '0,153,255'
 
-export default function NetworkBackground() {
+export default function NetworkBackground({ contained = false }) {
   const ref = useRef(null)
 
   useEffect(() => {
@@ -27,8 +27,9 @@ export default function NetworkBackground() {
 
     const build = () => {
       dpr = Math.min(window.devicePixelRatio || 1, 2)
-      w = window.innerWidth
-      h = window.innerHeight
+      const box = contained ? canvas.parentElement.getBoundingClientRect() : null
+      w = contained ? box.width : window.innerWidth
+      h = contained ? box.height : window.innerHeight
       canvas.width = Math.floor(w * dpr)
       canvas.height = Math.floor(h * dpr)
       canvas.style.width = w + 'px'
@@ -102,7 +103,10 @@ export default function NetworkBackground() {
     const stop = () => { cancelAnimationFrame(raf); raf = 0 }
 
     const onResize = () => { build(); reduced ? draw() : null }
-    const onMove = e => { mouse.x = e.clientX; mouse.y = e.clientY }
+    const onMove = e => {
+      const r = contained ? canvas.getBoundingClientRect() : { left: 0, top: 0 }
+      mouse.x = e.clientX - r.left; mouse.y = e.clientY - r.top
+    }
     const onLeave = () => { mouse.x = -9999; mouse.y = -9999 }
     const onVis = () => (document.hidden ? stop() : start())
 
@@ -130,7 +134,7 @@ export default function NetworkBackground() {
     <canvas
       ref={ref}
       aria-hidden="true"
-      className="pointer-events-none fixed inset-0 -z-10 h-full w-full"
+      className={`pointer-events-none ${contained ? 'absolute' : 'fixed -z-10'} inset-0 h-full w-full`}
     />
   )
 }
