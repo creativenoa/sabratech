@@ -16,6 +16,7 @@ import Profile from './pages/account/Profile'
 import Notifications from './pages/account/Notifications'
 import Settings from './pages/account/Settings'
 import Events from './pages/Events'
+import { usePageViews } from './lib/analytics'
 
 // Old /talent/:id links stay alive.
 function LegacyTalentRedirect() {
@@ -24,6 +25,7 @@ function LegacyTalentRedirect() {
 }
 
 export default function App() {
+  usePageViews()
   return (
     <Routes>
       <Route element={<Layout />}>
