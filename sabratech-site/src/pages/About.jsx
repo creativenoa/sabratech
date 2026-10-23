@@ -16,7 +16,7 @@ export default function About() {
       <p className="mt-6 font-serif text-xl leading-relaxed text-navy">{txt(content,'about_closing')}</p>
       <div className="mt-10 flex flex-wrap gap-3">
         <Link to="/apply" className="btn-accent">Join</Link>
-        <Link to="/search" className="btn-outline">Browse the community</Link>
+        <Link to="/directory" className="btn-outline">Browse the community</Link>
       </div>
     </div>
   )

@@ -10,6 +10,8 @@ import { ADMIN_PATH } from './lib/adminPath'
 
 // Route pages that are not needed for the first public view load on demand.
 import lazyPage from './lib/lazyPage'
+// Old /search links (bookmarks, alerts) keep working, filters included.
+function ToDirectory() { const l = useLocation(); return <Navigate replace to={`/directory${l.search}${l.hash}`} /> }
 import PageErrorBoundary from './components/PageErrorBoundary'
 const Search = lazyPage(() => import('./pages/Search'))
 const TalentDetail = lazyPage(() => import('./pages/TalentDetail'))
@@ -63,7 +65,8 @@ export default function App() {
       <Routes>
         <Route element={<Layout />}>
           <Route path="/" element={<Home />} />
-          <Route path="/search" element={<AuthGate><Search /></AuthGate>} />
+          <Route path="/directory" element={<AuthGate><Search /></AuthGate>} />
+          <Route path="/search" element={<ToDirectory />} />
           <Route path="/individual/:id" element={<AuthGate><TalentDetail /></AuthGate>} />
           <Route path="/talent/:id" element={<LegacyTalentRedirect />} />
           <Route path="/about" element={<About />} />

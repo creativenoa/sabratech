@@ -31,7 +31,7 @@ export default function Home() {
     const p = new URLSearchParams()
     if (q.trim()) p.set('q', q.trim())
     if (type) p.set('type', type)
-    navigate(`/search?${p.toString()}`)
+    navigate(`/directory?${p.toString()}`)
   }
 
   const heroTitle = txt(content,'home_hero_title')
@@ -118,13 +118,13 @@ export default function Home() {
             <p className="kicker">{txt(content,'home_fields_kicker')}</p>
             <h2 className="mt-2 font-serif text-3xl text-navy md:text-4xl">{txt(content,'home_fields_title')}</h2>
           </div>
-          <Link to="/search" className="hidden border-b border-navy/30 pb-0.5 text-sm font-semibold text-navy transition hover:border-cyan hover:text-cyan md:block">
+          <Link to="/directory" className="hidden border-b border-navy/30 pb-0.5 text-sm font-semibold text-navy transition hover:border-cyan hover:text-cyan md:block">
             Browse everyone
           </Link>
         </div>
         <div className="mt-8 flex flex-wrap gap-2.5">
           {cats.filter(c => c !== 'Other').map(cat => (
-            <Link key={cat} to={`/search?cat=${encodeURIComponent(cat)}`}
+            <Link key={cat} to={`/directory?cat=${encodeURIComponent(cat)}`}
               className="rounded-md border border-navy/20 bg-white px-5 py-2.5 text-sm font-semibold text-navy transition hover:border-cyan hover:bg-cyan hover:text-white">
               {cat}
             </Link>

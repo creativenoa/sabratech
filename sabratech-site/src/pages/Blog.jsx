@@ -20,7 +20,7 @@ export default function Blog() {
         <p className="mx-auto mt-3 max-w-md leading-relaxed text-ink/60">{txt(content,'blog_coming_body')}</p>
         <div className="mt-8 flex justify-center gap-3">
           <a href="mailto:noabet@gmail.com?subject=SabraTech%20blog%20post%20submission" className="btn-outline">{txt(content,'blog_submit_button')}</a>
-          <Link to="/search" className="btn-primary">Meet the community</Link>
+          <Link to="/directory" className="btn-primary">Meet the community</Link>
         </div>
       </div>
     </div>

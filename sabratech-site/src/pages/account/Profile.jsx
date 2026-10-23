@@ -343,7 +343,7 @@ export default function Profile() {
   const tab = params.get('tab') === 'businesses' ? 'businesses' : 'individual'
   const welcome = params.get('welcome') === '1'
   const setTab = t => setParams(t === 'individual' ? {} : { tab: t }, { replace: true })
-  const finishWelcome = () => (profile?.status === 'approved' ? navigate('/search') : setParams({}, { replace: true }))
+  const finishWelcome = () => (profile?.status === 'approved' ? navigate('/directory') : setParams({}, { replace: true }))
 
   return (
     <AccountShell title="Profile" intro="Your listings in the directory — you as a person, and the businesses you're part of.">

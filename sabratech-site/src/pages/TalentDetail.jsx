@@ -54,7 +54,7 @@ export default function TalentDetail() {
   const { id } = useParams()
   // Opened from the Profile page? Offer the way back there instead of the directory.
   const { state } = useLocation()
-  const back = state?.backTo ? { to: state.backTo, label: state.backLabel || 'Back' } : { to: '/search', label: 'Back to the directory' }
+  const back = state?.backTo ? { to: state.backTo, label: state.backLabel || 'Back' } : { to: '/directory', label: 'Back to the directory' }
   const [t, setT] = useState(undefined)
   const [all, setAll] = useState([])
   useEffect(() => { fetchTalent(id).then(d => setT(d ?? null)) }, [id])
@@ -68,7 +68,7 @@ export default function TalentDetail() {
   if (!t) return (
     <div className="py-24 text-center">
       <p className="font-serif text-3xl text-navy">Profile not found</p>
-      <Link to="/search" className="btn-primary mt-8">Back to the directory</Link>
+      <Link to="/directory" className="btn-primary mt-8">Back to the directory</Link>
     </div>
   )
 

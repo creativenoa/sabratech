@@ -15,7 +15,7 @@ import AccountMenu, { AlertBell, ACCOUNT_LINKS, memberDisplayName } from './Acco
 
 const NAV = [
   { to: '/', label: 'Home' },
-  { to: '/search', label: 'Search' },
+  { to: '/directory', label: 'Directory' },
   { to: '/events', label: 'Events' },
   { to: '/ai', label: 'AI' },
   { to: '/blog', label: 'Blog' },

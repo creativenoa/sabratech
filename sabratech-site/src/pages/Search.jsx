@@ -47,9 +47,15 @@ export default function Search() {
   useEffect(() => { writePref(localStorage, 'sabra.search.map', showMap ? 'on' : 'off') }, [showMap])
 
   useEffect(() => {
-    fetchTalents().then(t => { setTalents(t); setLoading(false) })
+    const load = () => fetchTalents().then(t => { setTalents(t); setLoading(false) })
+    load()
+    // Coming back to this tab/app window refreshes the list, so new members show up.
+    const onVis = () => { if (document.visibilityState === 'visible') load() }
+    document.addEventListener('visibilitychange', onVis)
+    window.addEventListener('focus', onVis)
     fetchCategories().then(setCats)
     fetchContent().then(setContent)
+    return () => { document.removeEventListener('visibilitychange', onVis); window.removeEventListener('focus', onVis) }
   }, [])
 
   const filtered = useMemo(() => {
@@ -136,6 +142,14 @@ export default function Search() {
           </div>
         </div>
       </div>
+
+      {(q || cat || type || flag) && (
+        <div className="mt-4 flex flex-wrap items-center gap-2 rounded-md border border-cyan/30 bg-cyan/5 px-4 py-2.5 text-sm text-navy" role="status">
+          <span className="font-semibold">Filters on:</span>
+          {[type && (type === 'company' ? 'Startups' : 'Individuals'), cat, flag === 'hiring' && 'Hiring now', flag === 'open' && 'Open to work', q && `“${q}”`].filter(Boolean).join(' · ')}
+          <button onClick={() => setParams(new URLSearchParams(), { replace: true })} className="ml-auto font-semibold underline underline-offset-2 hover:text-cyan">Clear all</button>
+        </div>
+      )}
 
       {showMap && (
         <div className="mt-6">
