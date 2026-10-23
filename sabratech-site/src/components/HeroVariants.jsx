@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useAuth } from '../lib/auth'
 import AuthModal from './AuthModal'
 
@@ -46,9 +46,18 @@ function Headline({ line1, words, dark, className = '' }) {
 
 // B — bold navy band, white type, your Atlanta skyline line art along the bottom.
 export function HeroSkyline({ kicker, line1, words, sub, cta }) {
+  const [skylineReady, setSkylineReady] = useState(false)
+  useEffect(() => {
+    const img = new Image()
+    img.onload = img.onerror = () => setSkylineReady(true)
+    img.src = '/hero-skyline.webp'
+    if (img.complete) setSkylineReady(true)
+  }, [])
   return (
     <section className="relative overflow-hidden bg-navy">
-      <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-[55%] bg-[url('/background_overlay.webp')] bg-contain bg-bottom bg-repeat-x opacity-[0.12] md:h-[70%]" />
+      {/* Skyline art: small file, preloaded in index.html, fades in instead of popping. */}
+      <div aria-hidden="true"
+        className={`pointer-events-none absolute inset-x-0 bottom-0 h-[55%] bg-[url('/hero-skyline.webp')] bg-contain bg-bottom bg-repeat-x transition-opacity duration-700 md:h-[70%] ${skylineReady ? 'opacity-[0.12]' : 'opacity-0'}`} />
       <div aria-hidden="true" className="pointer-events-none absolute -right-40 -top-40 h-[520px] w-[520px] rounded-full bg-cyan/25 blur-[120px]" />
       <div className="relative mx-auto max-w-[1080px] px-5 pb-24 pt-16 text-center md:pb-36 md:pt-24">
         <p className="text-xs font-semibold uppercase tracking-[0.25em] text-cyan-bright">{kicker}</p>
