@@ -8,7 +8,7 @@ const pin = color => new L.DivIcon({
   html: `<div style="background:${color};width:32px;height:32px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #fff;box-shadow:0 2px 6px rgba(40,49,94,.45)"></div>`,
   iconSize: [32, 32], iconAnchor: [16, 32], popupAnchor: [0, -28],
 })
-const PINS = { company: pin('#1F327A'), individual: pin('#00A5E0') }
+const PINS = { company: pin('#1F327A'), individual: pin('#0099FF') }
 
 export default function MapView({ talents, height = '46vh' }) {
   const withCoords = talents.filter(t => t.lat && t.lng)

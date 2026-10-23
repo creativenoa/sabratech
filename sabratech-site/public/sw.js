@@ -14,7 +14,7 @@
  * Bump CACHE_VERSION to force every client to drop its old cache.
  */
 
-const CACHE_VERSION = 'sabratech-v6'
+const CACHE_VERSION = 'sabratech-v7'
 const OFFLINE_URL = '/index.html'
 
 self.addEventListener('install', event => {

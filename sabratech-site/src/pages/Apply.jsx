@@ -104,7 +104,7 @@ export default function Apply() {
       <div className="mt-8 grid grid-cols-2 gap-3">
         {[['individual', 'Individual', User, 'A tech professional'], ['company', 'Startup', Building, 'An Israeli-founded startup']].map(([v, label, Icon, sub]) => (
           <button key={v} type="button" onClick={() => setType(v)}
-            className={`card flex flex-col items-center gap-2 !p-6 text-center transition ${type === v ? '!border-cyan !shadow-[0_0_0_2px_#00A5E0]' : ''}`}>
+            className={`card flex flex-col items-center gap-2 !p-6 text-center transition ${type === v ? '!border-cyan !shadow-[0_0_0_2px_#0099FF]' : ''}`}>
             <Icon className={`h-8 w-8 ${type === v ? 'text-cyan' : 'text-navy/40'}`} />
             <span className="font-serif text-lg text-navy">{label}</span>
             <span className="text-xs text-ink/50">{sub}</span>
