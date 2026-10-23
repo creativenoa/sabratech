@@ -62,10 +62,10 @@ export default function Dialog({ onClose, labelledBy, className = 'card w-full m
   }, [])
 
   return (
-    <div className="fixed inset-0 z-[2000] grid place-items-center overflow-y-auto bg-navy/60 p-5 backdrop-blur-sm"
+    <div className="backdrop-in fixed inset-0 z-[2000] grid place-items-center overflow-y-auto bg-navy/60 p-5 backdrop-blur-sm"
       onMouseDown={e => { if (e.target === e.currentTarget) onClose?.() }}>
       <div ref={panel} role="dialog" aria-modal="true" aria-labelledby={labelledBy} tabIndex={-1}
-        className={`${className} outline-none`}>
+        className={`modal-in ${className} outline-none`}>
         {children}
       </div>
     </div>

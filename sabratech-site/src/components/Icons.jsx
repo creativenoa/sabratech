@@ -31,3 +31,11 @@ export const Cog = p => <I {...p}><circle cx="12" cy="12" r="3"/><path d="M19.4 
 export const Chevron = p => <I {...p}><path d="m6 9 6 6 6-6"/></I>
 export const Shield = p => <I {...p}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></I>
 export const Logout = p => <I {...p}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></I>
+
+// Animated "done" checkmark for thank-you moments (draws itself; see .check-done in index.css).
+export const DoneCheck = ({ className = 'h-16 w-16' }) => (
+  <svg viewBox="0 0 56 56" className={`check-done mx-auto text-cyan ${className}`} fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <circle cx="28" cy="28" r="25" />
+    <path d="M17 29l7.5 7.5L39 21" />
+  </svg>
+)

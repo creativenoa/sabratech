@@ -66,3 +66,46 @@ h1, h2, h3 { @apply font-serif; }
 .text-ink\/35, .text-ink\/40, .text-ink\/45, .text-ink\/50, .text-ink\/55 { color: rgb(41 41 41 / 0.67); }
 .text-ink\/60, .text-ink\/65 { color: rgb(41 41 41 / 0.7); }
 .text-navy\/40, .text-navy\/50 { color: rgb(40 49 94 / 0.75); }
+
+/* ---------- Site-wide motion (2026-10-23) ----------
+   Popups grow in, menus grow from their button, buttons squish on press,
+   thank-you checkmark, welcome steps, homepage headline (once per visit). */
+@keyframes pop-menu-in { from { opacity: 0; transform: scale(0.96) translateY(-4px); } to { opacity: 1; transform: none; } }
+@keyframes badge-pop { 0% { transform: scale(0.5); } 60% { transform: scale(1.18); } 100% { transform: scale(1); } }
+@keyframes rise-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes check-circle { from { stroke-dashoffset: 158; } to { stroke-dashoffset: 0; } }
+@keyframes check-tick { from { stroke-dashoffset: 40; } to { stroke-dashoffset: 0; } }
+@keyframes check-pop { 0% { transform: scale(0.8); opacity: 0; } 60% { transform: scale(1.06); opacity: 1; } 100% { transform: scale(1); } }
+
+.modal-in { animation: ev-modal-in 220ms var(--ease-out-strong) both; }
+.backdrop-in { animation: ev-fade-in 200ms ease both; }
+.menu-in { transform-origin: top right; animation: pop-menu-in 160ms var(--ease-out-strong) both; }
+.badge-pop { animation: badge-pop 320ms var(--ease-out-strong) both; }
+.rise-in { animation: rise-in 420ms var(--ease-out-strong) both; }
+.btn-primary, .btn-accent, .btn-outline { transition-property: color, background-color, border-color, box-shadow, transform; }
+.btn-primary:active, .btn-accent:active, .btn-outline:active { transform: scale(0.97); transition-duration: 120ms; }
+.check-done { animation: check-pop 420ms var(--ease-out-strong) both; }
+.check-done circle { stroke-dasharray: 158; animation: check-circle 520ms var(--ease-out-strong) 80ms both; }
+.check-done path { stroke-dasharray: 40; animation: check-tick 300ms var(--ease-out-strong) 480ms both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .modal-in, .menu-in, .rise-in, .check-done { animation: ev-fade-in 180ms ease both; }
+  .badge-pop, .check-done circle, .check-done path { animation: none; }
+  .btn-primary:active, .btn-accent:active, .btn-outline:active { transform: none; }
+}
+
+/* ---------- Logo intro (once per visit) ----------
+   Cactus grows up with a small bounce, its dots pop bottom-to-top,
+   S-A-B-R-A slides in letter by letter, then "tech" fades up. ~1.3s. */
+@keyframes lg-grow { 0% { opacity: 0; transform: scaleY(0.15); } 55% { opacity: 1; transform: scaleY(1.06); } 78% { transform: scaleY(0.98); } 100% { transform: scaleY(1); } }
+@keyframes lg-pop { 0% { opacity: 0; transform: scale(0); } 70% { opacity: 1; transform: scale(1.3); } 100% { transform: scale(1); } }
+@keyframes lg-slide { from { opacity: 0; transform: translateX(-60px); } to { opacity: 1; transform: none; } }
+@keyframes lg-up { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: none; } }
+.logo-anim path { transform-box: fill-box; }
+.logo-anim.is-playing .lg-cactus { transform-origin: 50% 100%; animation: lg-grow 620ms var(--ease-out-strong) both; }
+.logo-anim.is-playing .lg-spine { transform-origin: center; animation: lg-pop 260ms var(--ease-out-strong) both; }
+.logo-anim.is-playing .lg-letter { animation: lg-slide 420ms var(--ease-out-strong) both; }
+.logo-anim.is-playing .lg-tech { animation: lg-up 380ms var(--ease-out-strong) both; }
+@media (prefers-reduced-motion: reduce) {
+  .logo-anim.is-playing path { animation: ev-fade-in 300ms ease both !important; }
+}

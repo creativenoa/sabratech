@@ -48,9 +48,9 @@ export default function AccountShell({ title, intro, children }) {
 }
 
 // Small shared bits for the account pages.
-export function Panel({ title, sub, children, tone }) {
+export function Panel({ title, sub, children, tone, className = '' }) {
   return (
-    <section className={`card !bg-white p-6 md:p-7 ${tone === 'danger' ? '!border-red-200' : ''}`}>
+    <section className={`card !bg-white p-6 md:p-7 ${tone === 'danger' ? '!border-red-200' : ''} ${className}`}>
       {title && <h2 className={`font-serif text-xl ${tone === 'danger' ? 'text-red-700' : 'text-navy'}`}>{title}</h2>}
       {sub && <p className="mt-1 text-sm text-ink/55">{sub}</p>}
       <div className={title || sub ? 'mt-5' : ''}>{children}</div>

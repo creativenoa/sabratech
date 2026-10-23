@@ -1,7 +1,7 @@
 import { useId, useState } from 'react'
 import Dialog from './Dialog'
 import { submitContactInquiry } from '../lib/data'
-import { Close } from './Icons'
+import { Close, DoneCheck } from './Icons'
 
 const PHONE_CHARS = /[^0-9 +().-]/g
 const phoneProblem = v => {
@@ -43,7 +43,8 @@ export default function ContactModal({ onClose, returnFocusTo }) {
 
         {status === 'done' ? (
           <div className="py-10 text-center">
-            <p className="font-serif text-2xl text-navy">Thank you!</p>
+            <DoneCheck />
+            <p className="rise-in mt-4 font-serif text-2xl text-navy" style={{ animationDelay: '200ms' }}>Thank you!</p>
             <p className="mt-2 text-ink/60">Your message is on its way to the SabraTech team.</p>
           </div>
         ) : (

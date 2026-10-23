@@ -8,7 +8,7 @@ import {
   myBusinesses, searchBusinesses, requestJoin, businessMembers, respondJoin,
   setMemberRole, removeMember, transferOwnership,
 } from '../../lib/account'
-import { Search, User, Building } from '../../components/Icons'
+import { Search, User, Building, DoneCheck } from '../../components/Icons'
 import { fileUrl } from '../../lib/data'
 
 const LISTING_STATUS = {
@@ -38,8 +38,9 @@ function IndividualTab({ onFirstSave }) {
   if (!row) {
     const [first, ...rest] = (profile?.full_name || '').trim().split(' ')
     return (
-      <Panel title="Welcome! Let's set up your profile"
+      <Panel className="rise-in" title="Welcome! Let's set up your profile"
         sub="Your profile is your page in the SabraTech directory — your role, skills and how members can reach you. Finish it to enter the site. If you applied before with a different email, contact us and we'll link it to this account.">
+        <div className="rise-in" style={{ animationDelay: '140ms' }}>
         <ListingForm type="individual" submitLabel={profile?.status === 'approved' ? 'Save my profile' : 'Save and send for approval'}
           initial={{ first_name: first || '', last_name: rest.join(' '), email: user.email }}
           onSubmit={async f => {
@@ -48,6 +49,7 @@ function IndividualTab({ onFirstSave }) {
             window.scrollTo({ top: 0, behavior: 'smooth' })
             onFirstSave?.()  // next onboarding step: the business
           }} />
+        </div>
       </Panel>
     )
   }
@@ -296,13 +298,14 @@ function AddBusiness({ onChanged }) {
 function BusinessWelcome({ onDone, hasBusiness }) {
   const { profile } = useAuth()
   if (hasBusiness) return (
-    <div className="flex flex-wrap items-center gap-3 rounded-lg border border-cyan/30 bg-cyan/5 p-5">
+    <div className="rise-in flex flex-wrap items-center gap-3 rounded-lg border border-cyan/30 bg-cyan/5 p-5">
+      <DoneCheck className="!mx-0 h-9 w-9 shrink-0" />
       <p className="flex-1 font-serif text-xl text-navy">You're all set!</p>
       <button onClick={onDone} className="btn-accent !px-4 !py-2 !text-sm">{profile?.status === 'approved' ? 'Go to the directory' : 'Done'}</button>
     </div>
   )
   return (
-    <div className="rounded-lg border border-cyan/30 bg-cyan/5 p-5">
+    <div className="rise-in rounded-lg border border-cyan/30 bg-cyan/5 p-5">
       <p className="font-serif text-xl text-navy">Profile saved! One last step: your business</p>
       <p className="mt-1 text-sm text-ink/60">
         Own a business or work at one? Search for it below — ask to join if it's already listed, or create it.

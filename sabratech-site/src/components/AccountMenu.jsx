@@ -99,13 +99,13 @@ export function AlertBell() {
         className="relative grid h-9 w-9 place-items-center rounded-full text-navy transition hover:bg-navy/5">
         <Bell className="h-5 w-5" />
         {unread > 0 && (
-          <span className="absolute -right-0.5 -top-0.5 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-red-600 px-1 text-[10px] font-black text-white">
+          <span key={unread} className="badge-pop absolute -right-0.5 -top-0.5 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-red-600 px-1 text-[10px] font-black text-white">
             {unread > 9 ? '9+' : unread}
           </span>
         )}
       </button>
       {open && (
-        <div className="absolute right-0 top-full z-[1200] pt-2">
+        <div className="menu-in absolute right-0 top-full z-[1200] pt-2">
           <div className="w-[320px] max-w-[calc(100vw-2rem)] overflow-hidden rounded-lg border border-navy/10 bg-white shadow-[0_20px_50px_-20px_rgba(40,49,94,0.45)]">
             <div className="flex items-center justify-between border-b border-navy/10 px-4 py-3">
               <p className="text-sm font-bold text-navy">Alerts</p>
@@ -148,7 +148,7 @@ export default function AccountMenu() {
         <Chevron className={`h-4 w-4 shrink-0 transition ${open ? 'rotate-180' : ''}`} />
       </button>
       {open && (
-        <div className="absolute right-0 top-full z-[1200] pt-2" role="menu">
+        <div className="menu-in absolute right-0 top-full z-[1200] pt-2" role="menu">
           <div className="w-56 overflow-hidden rounded-lg border border-navy/10 bg-white py-1.5 shadow-[0_20px_50px_-20px_rgba(40,49,94,0.45)]">
             <p className="truncate px-4 pb-2 pt-1 text-xs text-ink/50">{user?.email}</p>
             {ACCOUNT_LINKS.map(({ to, label, icon: Icon }) => (

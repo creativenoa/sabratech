@@ -7,6 +7,7 @@ import AuthModal from './AuthModal'
 import { useScrollLock } from './Dialog'
 import { ADMIN_PATH } from '../lib/adminPath'
 import InstallPrompt from './InstallPrompt'
+import LogoAnimated, { LOGO_MODE } from './LogoAnimated'
 import { useEffect } from 'react'
 import { fetchContent, txt, DEFAULT_CONTENT } from '../lib/data'
 import { useAuth, signOut } from '../lib/auth'
@@ -35,6 +36,7 @@ const navClass = ({ isActive }) =>
   `border-b-2 pb-0.5 text-sm font-semibold tracking-wide transition ${isActive ? 'border-cyan text-royal' : 'border-transparent text-ink/70 hover:text-navy'}`
 
 export default function Layout() {
+  const location = useLocation()
   const [open, setOpen] = useState(false)
   const [sponsor, setSponsor] = useState(false)
   const [contact, setContact] = useState(false)
@@ -75,7 +77,7 @@ export default function Layout() {
       <header className={`sticky top-0 z-[1100] border-b transition-all duration-300 ${scrolled ? 'border-navy/10 bg-white/80 backdrop-blur-md shadow-[0_6px_20px_-12px_rgba(40,49,94,0.35)]' : 'border-navy/10 bg-white'}`}>
         <div className="mx-auto flex max-w-[1080px] items-center justify-between gap-3 px-5 py-3.5">
           <Link to="/" onClick={() => setOpen(false)}>
-            <img src="/logo-light.svg" alt="SabraTech — Israeli tech in Atlanta" className="h-10 w-auto md:h-11" />
+            <LogoAnimated className="h-10 w-auto md:h-11" play={LOGO_MODE === 'header' || (LOGO_MODE === 'both' && location.pathname !== '/') ? 'auto' : 'never'} />
           </Link>
           <nav aria-label="Main" className="hidden items-center gap-6 lg:flex">
             {NAV.map(n => (

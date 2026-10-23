@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { DEFAULT_CATEGORIES, DEFAULT_CONTENT, fetchCategories, fetchContent, fetchTalents, txt, submitApplication, uploadFile } from '../lib/data'
 import { hasSupabase } from '../lib/supabase'
-import { Building, User } from '../components/Icons'
+import { Building, User, DoneCheck } from '../components/Icons'
 import SkillsInput from '../components/SkillsInput'
 
 const fmtPhone = v => {
@@ -88,6 +88,7 @@ export default function Apply() {
 
   if (status === 'done') return (
     <div className="mx-auto max-w-xl px-5 py-28 text-center">
+      <DoneCheck className="mb-6 h-20 w-20" />
       <p className="kicker">Thank you</p>
       <h1 className="mt-3 font-serif text-4xl text-navy">Application received</h1>
       <p className="mt-4 leading-relaxed text-ink/60">We'll review your details and add you to the directory soon. Welcome to the community!</p>
