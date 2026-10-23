@@ -72,7 +72,7 @@ export default function Layout() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className={`sticky top-0 z-[1100] border-b transition-all duration-300 ${scrolled ? 'border-navy/10 bg-cream/80 backdrop-blur-md shadow-[0_6px_20px_-12px_rgba(40,49,94,0.35)]' : 'border-navy/10 bg-cream'}`}>
+      <header className={`sticky top-0 z-[1100] border-b transition-all duration-300 ${scrolled ? 'border-navy/10 bg-white/80 backdrop-blur-md shadow-[0_6px_20px_-12px_rgba(40,49,94,0.35)]' : 'border-navy/10 bg-white'}`}>
         <div className="mx-auto flex max-w-[1080px] items-center justify-between gap-3 px-5 py-3.5">
           <Link to="/" onClick={() => setOpen(false)}>
             <img src="/logo-light.svg" alt="SabraTech — Israeli tech in Atlanta" className="h-10 w-auto md:h-11" />
@@ -108,7 +108,7 @@ export default function Layout() {
       <div className={`fixed inset-0 z-[1200] transition-[visibility] duration-300 lg:hidden ${open ? 'visible' : 'pointer-events-none invisible'}`}>
         <div onClick={() => setOpen(false)}
           className={`absolute inset-0 bg-navy/40 transition-opacity duration-300 ${open ? 'opacity-100' : 'opacity-0'}`} />
-        <nav id="mobile-menu" aria-label="Mobile" className={`absolute inset-y-0 right-0 flex w-[82%] max-w-sm flex-col overflow-y-auto bg-cream px-5 pb-8 pt-4 shadow-[-12px_0_40px_-12px_rgba(40,49,94,0.35)] transition-transform duration-300 ${open ? 'translate-x-0' : 'translate-x-full'}`}>
+        <nav id="mobile-menu" aria-label="Mobile" className={`absolute inset-y-0 right-0 flex w-[82%] max-w-sm flex-col overflow-y-auto bg-white px-5 pb-8 pt-4 shadow-[-12px_0_40px_-12px_rgba(40,49,94,0.35)] transition-transform duration-300 ${open ? 'translate-x-0' : 'translate-x-full'}`}>
           <div className="flex justify-end pb-2">
             <button className="text-navy" onClick={() => setOpen(false)} aria-label="Close menu">
               <Close className="h-6 w-6" />
