@@ -22,3 +22,39 @@ h1, h2, h3 { @apply font-serif; }
 
 /* Brand-tinted map: mute the base tiles toward the palette */
 .map-brand .leaflet-tile { filter: grayscale(1) brightness(1.04) sepia(0.14) hue-rotate(175deg) saturate(2.2); }
+
+/* ---------- Events calendar motion ----------
+   Month change: the grid slides in from the side you're moving toward.
+   First view: day cells cascade in (8ms apart). Event dots pop.
+   Reduced motion: fades only. */
+:root {
+  --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
+}
+@keyframes cal-in-next { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: none; } }
+@keyframes cal-in-prev { from { opacity: 0; transform: translateX(-28px); } to { opacity: 1; transform: none; } }
+@keyframes cal-cell-in { from { opacity: 0; transform: translateY(6px) scale(0.96); } to { opacity: 1; transform: none; } }
+@keyframes cal-dot-pop { from { opacity: 0; transform: scale(0.4); } to { opacity: 1; transform: scale(1); } }
+@keyframes cal-title-in { from { opacity: 0; transform: translateY(-6px); filter: blur(2px); } to { opacity: 1; transform: none; filter: none; } }
+@keyframes ev-card-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes ev-modal-in { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: none; } }
+@keyframes ev-fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+.cal-grid-next { animation: cal-in-next 280ms var(--ease-out-strong) both; }
+.cal-grid-prev { animation: cal-in-prev 280ms var(--ease-out-strong) both; }
+.cal-cell-first { animation: cal-cell-in 340ms var(--ease-out-strong) both; }
+.cal-dot { animation: cal-dot-pop 260ms var(--ease-out-strong) both; animation-delay: 180ms; }
+.cal-title { animation: cal-title-in 240ms var(--ease-out-strong) both; }
+.ev-card { animation: ev-card-in 320ms var(--ease-out-strong) both; }
+.ev-modal { animation: ev-modal-in 220ms var(--ease-out-strong) both; }
+.ev-backdrop { animation: ev-fade-in 200ms ease both; }
+.press { transition: transform 160ms ease-out; }
+.press:active { transform: scale(0.97); }
+.cal-day { transition: background-color 180ms ease, color 180ms ease, box-shadow 180ms ease; }
+@media (hover: hover) and (pointer: fine) {
+  .ev-card-hover { transition: transform 200ms var(--ease-out-strong), box-shadow 200ms ease; }
+  .ev-card-hover:hover { transform: translateY(-2px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cal-grid-next, .cal-grid-prev, .cal-cell-first, .cal-title, .ev-card, .ev-modal { animation: ev-fade-in 180ms ease both; }
+  .cal-dot { animation: none; }
+}

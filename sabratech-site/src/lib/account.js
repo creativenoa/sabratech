@@ -97,6 +97,7 @@ export const ALERT_TYPES = [
   { key: 'join_requests', label: 'Join requests', desc: 'When someone asks to join a business you own or manage.', channels: ['site', 'email', 'push'] },
   { key: 'join_decisions', label: 'My business requests', desc: 'When a business approves or declines your request, or makes you owner.', channels: ['site', 'email', 'push'] },
   { key: 'account', label: 'Membership', desc: 'When your membership is approved.', channels: ['site', 'email', 'push'] },
+  { key: 'events', label: 'Events', desc: "When you're invited to an event, or one you registered for is cancelled.", channels: ['site', 'email', 'push'] },
   { key: 'new_members', label: 'New in the directory', desc: 'When a new person or business joins the directory.', channels: ['site', 'email', 'push'] },
   { key: 'newsletter', label: 'Community news', desc: 'Occasional emails about events and community updates.', channels: ['email'] },
   { key: 'admin_alerts', label: 'Admin: items waiting for you', desc: 'New members and listings waiting for approval.', channels: ['site', 'email', 'push'], adminOnly: true },

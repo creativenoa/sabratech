@@ -8,6 +8,8 @@ import { adminSetOwner } from '../lib/account'
 import { flushPush } from '../lib/push'
 import { TeamPanel } from './account/Profile'
 import SkillsInput from '../components/SkillsInput'
+import AdminEvents from './admin/AdminEvents'
+import { adminListSuggestions } from '../lib/events'
 
 const EMPTY = {
   type: 'individual', name: '', first_name: '', last_name: '', title: '', company: '', bio: '', description: '',
@@ -126,7 +128,8 @@ function ActionBanner({ items, onGo, onDismiss }) {
 }
 
 export default function Admin() {
-  const { loading: authLoading, isAuthed, isAdmin } = useAuth()
+  const { loading: authLoading, isAuthed, isAdmin, user } = useAuth()
+  const [suggestions, setSuggestions] = useState([])
   const [tab, setTab] = useState('pending')
   const [rows, setRows] = useState([])
   const [sponsors, setSponsors] = useState([])
@@ -196,6 +199,7 @@ export default function Admin() {
     if (sc) for (const row of sc) if (row.value) merged[row.key] = row.value
     setContent(merged)
     await loadMembers(); loadContacts()
+    adminListSuggestions().then(x => setSuggestions((x || []).filter(s => s.status === 'new'))).catch(() => {})
   }
   useEffect(() => { if (isAdmin) load() }, [isAdmin])
 
@@ -397,6 +401,10 @@ export default function Admin() {
       text: `New ${t.type === 'company' ? 'business' : 'individual'} listing waiting for approval: ${displayName(t) || 'untitled'}`,
       cta: t.type === 'company' ? 'Approve business' : 'Approve listing',
     })),
+    ...suggestions.map(sg => ({
+      key: 'sugg:' + sg.id, tab: 'events', rowId: 'sugg-' + sg.id,
+      text: `Event suggestion waiting: ${sg.title}`, cta: 'Review suggestion',
+    })),
   ].filter(a => !dismissed.includes(a.key))
 
   const goToAction = a => {
@@ -418,6 +426,7 @@ export default function Admin() {
     ['contact', `Contact (${contacts.filter(c => c.status === 'new').length})`],
     ['sponsors', `Sponsors (${sponsors.filter(s => s.status === 'new').length})`],
     ['tools', `AI tools (${aiTools.length})`],
+    ['events', `Events${suggestions.length ? ` (${suggestions.length})` : ''}`],
     ['cats', `Categories (${cats.length})`],
     ['content', 'Site texts'],
   ]
@@ -481,6 +490,11 @@ export default function Admin() {
             </div>
           ))}
         </div>
+      )}
+
+      {tab === 'events' && (
+        <AdminEvents members={members} businesses={rows.filter(r => r.type === 'company')} adminId={user?.id}
+          onCountsChanged={() => adminListSuggestions().then(x => setSuggestions((x || []).filter(s => s.status === 'new'))).catch(() => {})} />
       )}
 
       {tab === 'members' && (

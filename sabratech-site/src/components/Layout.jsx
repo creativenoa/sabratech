@@ -13,6 +13,7 @@ import AccountMenu, { AlertBell, ACCOUNT_LINKS, memberDisplayName } from './Acco
 const NAV = [
   { to: '/', label: 'Home' },
   { to: '/search', label: 'Search' },
+  { to: '/events', label: 'Events' },
   { to: '/ai', label: 'AI' },
   { to: '/blog', label: 'Blog' },
   { to: '/about', label: 'About' },

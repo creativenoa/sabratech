@@ -15,6 +15,7 @@ import MyAccount from './pages/account/MyAccount'
 import Profile from './pages/account/Profile'
 import Notifications from './pages/account/Notifications'
 import Settings from './pages/account/Settings'
+import Events from './pages/Events'
 
 // Old /talent/:id links stay alive.
 function LegacyTalentRedirect() {
@@ -31,6 +32,7 @@ export default function App() {
         <Route path="/individual/:id" element={<AuthGate><TalentDetail /></AuthGate>} />
         <Route path="/talent/:id" element={<LegacyTalentRedirect />} />
         <Route path="/about" element={<About />} />
+        <Route path="/events" element={<AuthGate><Events /></AuthGate>} />
         <Route path="/ai" element={<AuthGate><AI /></AuthGate>} />
         <Route path="/apply" element={<AuthGate><Apply /></AuthGate>} />
         <Route path="/blog" element={<AuthGate><Blog /></AuthGate>} />

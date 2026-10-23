@@ -6,7 +6,7 @@
 //   AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_ENDPOINT_URL_S3, AWS_REGION
 //   NEON_STORAGE_BUCKET   e.g. "sabratech-public" (a public_read bucket)
 //
-// Body: { bucket: 'talent-photos'|'talent-cvs', path, contentType, size }
+// Body: { bucket: 'talent-photos'|'talent-cvs'|'event-images', path, contentType, size }
 // The legacy "bucket" names become key prefixes inside the one real bucket.
 
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
@@ -17,6 +17,7 @@ const MAX_BYTES = 10 * 1024 * 1024 // 10MB
 const RULES = {
   'talent-photos': /^image\//,
   'talent-cvs': /^application\/pdf$/,
+  'event-images': /^image\//,
 }
 
 export default async function handler(req, res) {
