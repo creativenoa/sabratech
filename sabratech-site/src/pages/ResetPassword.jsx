@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { neonAuthUrl, hasSupabase } from '../lib/supabase'
 
@@ -6,7 +6,15 @@ import { neonAuthUrl, hasSupabase } from '../lib/supabase'
 //   /reset-password?token=…   (Neon Auth appends the token)
 // Posts the new password + token straight to the Neon Auth endpoint.
 export default function ResetPassword() {
-  const token = new URLSearchParams(window.location.search).get('token') || ''
+  // Read the secret token once, keep it only in memory, and strip it from the
+  // address bar so it does not linger in history, screenshots or shared links.
+  const [token] = useState(() => new URLSearchParams(window.location.search).get('token') || '')
+  useEffect(() => {
+    const url = new URL(window.location.href)
+    if (!url.searchParams.has('token')) return
+    url.searchParams.delete('token')
+    window.history.replaceState(window.history.state, '', url.pathname + url.search + url.hash)
+  }, [])
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [status, setStatus] = useState('idle') // idle | sending | done

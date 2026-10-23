@@ -1,9 +1,11 @@
-import { useState } from 'react'
+import { useId, useState } from 'react'
+import Dialog from './Dialog'
 import { submitSponsorInquiry, fetchContent, txt, DEFAULT_CONTENT } from '../lib/data'
 import { Close } from './Icons'
 import { useEffect } from 'react'
 
-export default function SponsorModal({ onClose }) {
+export default function SponsorModal({ onClose, returnFocusTo }) {
+  const titleId = useId()
   const [form, setForm] = useState({ name: '', company: '', email: '', phone: '', message: '' })
   const [status, setStatus] = useState('idle')
   const [content, setContent] = useState(DEFAULT_CONTENT)
@@ -20,14 +22,14 @@ export default function SponsorModal({ onClose }) {
   }
 
   return (
-    <div className="fixed inset-0 z-[2000] grid place-items-center bg-navy/60 p-5 backdrop-blur-sm" onClick={onClose}>
-      <div className="card w-full max-w-lg !bg-white p-7" onClick={e => e.stopPropagation()}>
+    <Dialog onClose={onClose} labelledBy={titleId} returnFocusTo={returnFocusTo}>
+      <div>
         <div className="flex items-start justify-between">
           <div>
             <p className="kicker">{txt(content,'sponsor_kicker')}</p>
-            <h2 className="mt-1 font-serif text-3xl text-navy">{txt(content,'sponsor_title')}</h2>
+            <h2 id={titleId} className="mt-1 font-serif text-3xl text-navy">{txt(content,'sponsor_title')}</h2>
           </div>
-          <button onClick={onClose} aria-label="Close" className="text-navy/40 transition hover:text-navy"><Close className="h-6 w-6" /></button>
+          <button onClick={onClose} aria-label="Close" className="text-navy/70 transition hover:text-navy"><Close className="h-6 w-6" /></button>
         </div>
 
         {status === 'done' ? (
@@ -69,6 +71,6 @@ export default function SponsorModal({ onClose }) {
           </form>
         )}
       </div>
-    </div>
+    </Dialog>
   )
 }

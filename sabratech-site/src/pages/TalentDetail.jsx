@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams, useLocation } from 'react-router-dom'
-import { fetchTalent, fetchTalents, fetchBusinessTeam, fetchMemberBusinesses } from '../lib/data'
+import { fetchTalent, fetchTalents, fetchBusinessTeam, fetchMemberBusinesses, fileUrl } from '../lib/data'
 import { TalentImage, Badges } from '../components/TalentCard'
 import { Building, User, Phone, Mail, Globe, Pin, ArrowBack, Whatsapp, Linkedin, Github, Download } from '../components/Icons'
 
@@ -36,7 +36,7 @@ function EntityPill({ to, name, photo, role, sub, kind }) {
   const inner = (
     <>
       {photo
-        ? <img src={photo} alt="" className={`h-7 w-7 shrink-0 object-cover ${kind === 'company' ? 'rounded-md' : 'rounded-full'}`} />
+        ? <img src={fileUrl(photo)} alt="" width={28} height={28} loading="lazy" decoding="async" className={`h-7 w-7 shrink-0 object-cover ${kind === 'company' ? 'rounded-md' : 'rounded-full'}`} />
         : <span className={`grid h-7 w-7 shrink-0 place-items-center bg-white ${kind === 'company' ? 'rounded-md' : 'rounded-full'}`}><Icon className="h-4 w-4 text-navy/40" /></span>}
       <span className="min-w-0 text-left leading-tight">
         <span className="block truncate text-sm font-bold">{name}</span>
@@ -148,7 +148,7 @@ export default function TalentDetail() {
             </div>
             {isPerson && t.cv_url && (
               <div className="mt-6 flex flex-col items-center gap-1 md:items-start">
-                <a href={t.cv_url} target="_blank" rel="noopener noreferrer" className="btn-accent !py-2.5 !text-sm">
+                <a href={fileUrl(t.cv_url)} target="_blank" rel="noopener noreferrer" className="btn-accent !py-2.5 !text-sm">
                   <Download className="h-4 w-4" />
                   Download CV
                 </a>

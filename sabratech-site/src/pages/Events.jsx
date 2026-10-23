@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
-import { uploadFile } from '../lib/data'
+import { uploadFile, fileUrl } from '../lib/data'
 import {
   fetchEventsFeed, fetchAttendees, registerForEvent, unregisterFromEvent, suggestEvent,
   googleCalendarUrl, downloadIcs, fmtWhen, fromLocalInput,
@@ -102,7 +102,7 @@ function EventCard({ e, index, onOpen }) {
       className={`ev-card ev-card-hover press card group flex w-full items-stretch overflow-hidden !bg-white text-left ${past ? 'opacity-60' : ''}`}>
       <div className="relative w-28 shrink-0 bg-navy sm:w-40">
         {e.image_url
-          ? <img src={e.image_url} alt="" className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
+          ? <img src={fileUrl(e.image_url)} alt="" className="absolute inset-0 h-full w-full object-cover" loading="lazy" decoding="async" />
           : <img src="/logo-dark.svg" alt="" className="absolute inset-x-0 bottom-3 mx-auto w-20 opacity-25 sm:w-24" />}
         <div className="absolute left-2 top-2"><DateBadge iso={e.starts_at} /></div>
       </div>
@@ -146,7 +146,7 @@ function EventModal({ e, onClose, onChanged }) {
         {/* Hero */}
         <div className="relative min-h-[220px] bg-navy text-white sm:min-h-[260px]">
           {e.image_url
-            ? <img src={e.image_url} alt="" className="absolute inset-0 h-full w-full object-cover" />
+            ? <img src={fileUrl(e.image_url)} alt="" className="absolute inset-0 h-full w-full object-cover" decoding="async" />
             : <img src="/logo-dark.svg" alt="" className="absolute right-6 top-6 w-28 opacity-20" />}
           <div className="absolute inset-0 bg-gradient-to-t from-navy via-navy/60 to-navy/10" />
           <button onClick={onClose} aria-label="Close" className="press absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-black/30 text-white backdrop-blur hover:bg-black/50"><Close className="h-5 w-5" /></button>
@@ -164,7 +164,7 @@ function EventModal({ e, onClose, onChanged }) {
                 <div className="flex -space-x-2">
                   {attendees.slice(0, 12).map(a => {
                     const img = a.photo_url
-                      ? <img src={a.photo_url} alt={a.name} title={a.name} className="h-8 w-8 rounded-full object-cover ring-2 ring-navy" />
+                      ? <img src={fileUrl(a.photo_url)} width={32} height={32} loading="lazy" decoding="async" alt={a.name} title={a.name} className="h-8 w-8 rounded-full object-cover ring-2 ring-navy" />
                       : <span title={a.name} className="grid h-8 w-8 place-items-center rounded-full bg-cyan text-xs font-black uppercase text-white ring-2 ring-navy">{(a.name || '?').slice(0, 1)}</span>
                     return a.individual_id ? <Link key={a.user_id} to={`/individual/${a.individual_id}`} onClick={onClose}>{img}</Link> : <span key={a.user_id}>{img}</span>
                   })}

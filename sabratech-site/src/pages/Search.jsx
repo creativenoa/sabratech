@@ -17,6 +17,9 @@ function writePref(store, key, value) {
   try { store.setItem(key, value) } catch { /* ignore */ }
 }
 
+const COUNT_WORDS = { company: ['startup', 'startups'], individual: ['professional', 'professionals'], '': ['member', 'members'] }
+const countLabel = (type, n) => (COUNT_WORDS[type] || COUNT_WORDS[''])[n === 1 ? 0 : 1]
+
 export default function Search() {
   const [params, setParams] = useSearchParams()
   const [talents, setTalents] = useState([])
@@ -93,7 +96,7 @@ export default function Search() {
           <div className="flex flex-col gap-3 sm:flex-row">
             <div className="flex overflow-hidden rounded-md border border-navy/20 bg-white">
               {TYPES.map(([v, label]) => (
-                <button key={v} onClick={() => set('type', v)}
+                <button key={v} aria-pressed={type === v} onClick={() => set('type', v)}
                   className={`px-4 py-2.5 text-sm font-semibold transition ${type === v ? 'bg-navy text-cream' : 'text-ink/50 hover:text-navy'}`}>
                   {label}
                 </button>
@@ -110,21 +113,21 @@ export default function Search() {
               <option value="">All fields</option>
               {orderedCats.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
-            <button onClick={() => set('flag', flag === 'hiring' ? '' : 'hiring')}
+            <button aria-pressed={flag === 'hiring'} onClick={() => set('flag', flag === 'hiring' ? '' : 'hiring')}
               className={`rounded-md border px-4 py-2 text-sm font-semibold transition ${flag === 'hiring' ? 'border-cyan bg-cyan text-white' : 'border-navy/20 bg-white text-ink/60 hover:border-cyan/60'}`}>
               Hiring now
             </button>
-            <button onClick={() => set('flag', flag === 'open' ? '' : 'open')}
+            <button aria-pressed={flag === 'open'} onClick={() => set('flag', flag === 'open' ? '' : 'open')}
               className={`rounded-md border px-4 py-2 text-sm font-semibold transition ${flag === 'open' ? 'border-cyan bg-cyan text-white' : 'border-navy/20 bg-white text-ink/60 hover:border-cyan/60'}`}>
               Open to work
             </button>
-            <button onClick={() => setShowMap(!showMap)}
+            <button aria-pressed={showMap} onClick={() => setShowMap(!showMap)}
               className={`rounded-md border px-4 py-2 text-sm font-semibold transition ${showMap ? 'border-navy bg-navy text-cream' : 'border-navy/20 bg-white text-ink/60 hover:border-navy/50'}`}>
               Map
             </button>
             <div className="ml-auto flex overflow-hidden rounded-md border border-navy/20 bg-white">
               {VIEWS.map(([v, label]) => (
-                <button key={v} onClick={() => setView(v)}
+                <button key={v} aria-pressed={view === v} onClick={() => setView(v)}
                   className={`px-4 py-2 text-sm font-semibold transition ${view === v ? 'bg-navy text-cream' : 'text-ink/50 hover:text-navy'}`}>
                   {label}
                 </button>
@@ -156,8 +159,8 @@ export default function Search() {
           </div>
         )}
         {!loading && (
-          <p className="mt-8 text-center text-xs uppercase tracking-[0.2em] text-ink/30">
-            {filtered.length} {type === 'company' ? 'startups' : type === 'individual' ? 'professionals' : 'members'}
+          <p className="mt-8 text-center text-xs uppercase tracking-[0.2em] text-ink/60">
+            {filtered.length} {countLabel(type, filtered.length)}
           </p>
         )}
       </div>

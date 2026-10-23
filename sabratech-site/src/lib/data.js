@@ -103,19 +103,91 @@ export async function fetchCategories() {
   return DEFAULT_CATEGORIES
 }
 
-// Files live in Neon Object Storage now. The browser asks /api/upload for a
-// one-time signed upload link (the server holds the storage keys), PUTs the
-// file to it, and stores the returned public URL.
-export async function uploadFile(bucket, file, prefix = '') {
+// ---------- Member files (photos, CVs, event images) ----------
+// Files live in Neon Object Storage. They are members-only: the database keeps
+// the original storage URL as an identifier, and the page always shows a file
+// through /api/file, which checks the visitor's login and then hands over a
+// short-lived signed link. fileUrl() does that conversion — use it anywhere a
+// stored photo_url / cv_url / image_url is put into src= or href=.
+// Anything that is not one of our stored files (external links, blob:/data:
+// previews, already-converted URLs) is returned unchanged.
+const FILE_PREFIXES = ['talent-photos', 'talent-cvs', 'event-images']
+
+export function fileUrl(stored) {
+  if (!stored || typeof stored !== 'string') return stored || ''
+  if (/^(blob:|data:|\/api\/file\?)/.test(stored)) return stored
+  try {
+    const u = new URL(stored, window.location.origin)
+    // Only our Neon storage (any older non-Neon URL keeps working as it was).
+    if (!/(^|\.)neon\.tech$/i.test(u.hostname)) return stored
+    const parts = u.pathname.split('/').filter(Boolean).map(decodeURIComponent)
+    const i = parts.findIndex(p => FILE_PREFIXES.includes(p))
+    if (i < 0 || i === parts.length - 1) return stored
+    return '/api/file?key=' + encodeURIComponent(parts.slice(i).join('/'))
+  } catch { return stored }
+}
+
+// Photos are shrunk in the browser before upload (max 1200px on the longest
+// side) — a 5MB phone photo becomes ~150–300KB, so pages load much faster.
+// PNGs (which may be transparent logos) become WebP to keep transparency;
+// everything else becomes JPEG. If shrinking would not help, the original is kept.
+const MAX_SIDE = 1200
+const QUALITY = 0.82
+
+function loadImage(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file)
+    const img = new Image()
+    img.onload = () => { URL.revokeObjectURL(url); resolve(img) }
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('decode')) }
+    img.src = url
+  })
+}
+
+async function shrinkImage(file) {
+  if (!/^image\/(jpeg|png|webp)$/.test(file.type)) return file // gif/heic/svg: leave as is
+  try {
+    const img = await loadImage(file)
+    const w = img.naturalWidth, h = img.naturalHeight
+    if (!w || !h) return file
+    const scale = Math.min(1, MAX_SIDE / Math.max(w, h))
+    if (scale === 1 && file.size < 400 * 1024) return file // already small
+    const canvas = document.createElement('canvas')
+    canvas.width = Math.round(w * scale)
+    canvas.height = Math.round(h * scale)
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return file
+    ctx.imageSmoothingQuality = 'high'
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+    const wantAlpha = file.type === 'image/png'
+    let type = wantAlpha ? 'image/webp' : 'image/jpeg'
+    let blob = await new Promise(r => canvas.toBlob(r, type, QUALITY))
+    // A browser that cannot write WebP returns PNG instead — fine, keeps alpha.
+    if (blob && wantAlpha && blob.type !== 'image/webp') type = blob.type || 'image/png'
+    if (!blob || blob.size >= file.size) return file
+    const ext = { 'image/jpeg': 'jpg', 'image/webp': 'webp', 'image/png': 'png' }[blob.type] || 'jpg'
+    const base = (file.name || 'image').replace(/\.[^.]+$/, '')
+    return new File([blob], `${base}.${ext}`, { type: blob.type || type })
+  } catch {
+    return file
+  }
+}
+
+// The browser asks /api/upload (login required) for a one-time signed upload
+// link, PUTs the file to it, and stores the returned storage URL.
+export async function uploadFile(bucket, original, prefix = '') {
+  const file = bucket === 'talent-cvs' ? original : await shrinkImage(original)
   const ext = (file.name.split('.').pop() || 'bin').toLowerCase()
   const path = `${prefix}${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
   const contentType = file.type || 'application/octet-stream'
   const r = await fetch('/api/upload', {
     method: 'POST',
+    credentials: 'same-origin',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ bucket, path, contentType, size: file.size }),
   })
   const body = await r.json().catch(() => ({}))
+  if (r.status === 401) throw new Error('Please log in again to upload files.')
   if (!r.ok || !body.uploadUrl) throw new Error(body.error || 'Could not start the upload')
   const put = await fetch(body.uploadUrl, { method: 'PUT', headers: { 'Content-Type': contentType }, body: file })
   if (!put.ok) throw new Error('Upload failed')
@@ -207,11 +279,17 @@ export async function fetchTools() {
   return []
 }
 
-export async function fetchContent() {
-  const merged = { ...DEFAULT_CONTENT }
-  if (hasSupabase) {
-    const { data, error } = await supabase.from('site_content').select('*')
-    if (!error && data) for (const row of data) if (row.value) merged[row.key] = row.value
-  }
-  return merged
+// Shared by every page in one visit (Layout, Home, forms) — one network call, not five.
+let contentPromise
+export function fetchContent() {
+  if (!contentPromise) contentPromise = (async () => {
+    const merged = { ...DEFAULT_CONTENT }
+    if (hasSupabase) {
+      const { data, error } = await supabase.from('site_content').select('*')
+      if (!error && data) for (const row of data) if (row.value) merged[row.key] = row.value
+    }
+    return merged
+  })().catch(e => { contentPromise = undefined; throw e })
+  return contentPromise
 }
+export const resetContentCache = () => { contentPromise = undefined }

@@ -1,9 +1,11 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { NavLink, Outlet, Link, Navigate, useLocation } from 'react-router-dom'
 import { Menu, Close, Linkedin } from './Icons'
 import SponsorModal from './SponsorModal'
 import ContactModal from './ContactModal'
 import AuthModal from './AuthModal'
+import { useScrollLock } from './Dialog'
+import { ADMIN_PATH } from '../lib/adminPath'
 import InstallPrompt from './InstallPrompt'
 import { useEffect } from 'react'
 import { fetchContent, txt, DEFAULT_CONTENT } from '../lib/data'
@@ -42,10 +44,19 @@ export default function Layout() {
   const { isAuthed, isAdmin, user, profile, loading: authLoading } = useAuth()
   useEffect(() => { fetchContent().then(setContent) }, [])
   // Freeze the page behind the open mobile menu.
+  useScrollLock(open)
+  // Escape closes the mobile menu.
   useEffect(() => {
-    document.body.style.overflow = open ? 'hidden' : ''
-    return () => { document.body.style.overflow = '' }
+    if (!open) return
+    const onKey = e => { if (e.key === 'Escape') { setOpen(false); menuBtn.current?.focus() } }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
   }, [open])
+  // Pop-ups opened from the mobile menu hand focus back to the ☰ button when they close.
+  const menuBtn = useRef(null)
+  const fromMenu = useRef(false)
+  const returnTo = () => (fromMenu.current ? menuBtn.current : undefined)
+  const closeContact = () => setContact(false)
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20)
     onScroll()
@@ -54,7 +65,9 @@ export default function Layout() {
   }, [])
 
   const memberName = memberDisplayName(profile, user)
-  const openAuth = tab => { setOpen(false); setAuthTab(tab) }
+  const openAuth = tab => { fromMenu.current = open; setOpen(false); setAuthTab(tab) }
+  const openContact = () => { fromMenu.current = open; setContact(true); setOpen(false) }
+  const openSponsor = () => { fromMenu.current = false; setSponsor(true) }
   const logOut = () => { setOpen(false); signOut().catch(() => {}) }
 
   return (
@@ -64,11 +77,11 @@ export default function Layout() {
           <Link to="/" onClick={() => setOpen(false)}>
             <img src="/logo-light.svg" alt="SabraTech — Israeli tech in Atlanta" className="h-10 w-auto md:h-11" />
           </Link>
-          <nav className="hidden items-center gap-6 md:flex">
+          <nav aria-label="Main" className="hidden items-center gap-6 lg:flex">
             {NAV.map(n => (
               <NavLink key={n.to} to={n.to} end={n.to === '/'} className={navClass}>{n.label}</NavLink>
             ))}
-            <button onClick={() => setContact(true)} className="btn-outline !px-4 !py-2 !text-sm">Contact us</button>
+            <button onClick={openContact} className="btn-outline whitespace-nowrap !px-4 !py-2 !text-sm">Contact us</button>
             {authLoading ? null : isAuthed ? (
               <div className="flex items-center gap-1">
                 <AlertBell />
@@ -76,14 +89,14 @@ export default function Layout() {
               </div>
             ) : (
               <>
-                <button onClick={() => openAuth('login')} className="text-sm font-semibold tracking-wide text-ink/70 transition hover:text-navy">Log in</button>
-                <button onClick={() => openAuth('signup')} className="btn-accent !px-4 !py-2 !text-sm">Join</button>
+                <button onClick={() => openAuth('login')} className="whitespace-nowrap text-sm font-semibold tracking-wide text-ink/70 transition hover:text-navy">Log in</button>
+                <button onClick={() => openAuth('signup')} className="btn-accent whitespace-nowrap !px-4 !py-2 !text-sm">Join</button>
               </>
             )}
           </nav>
-          <div className="flex items-center gap-2 md:hidden">
+          <div className="flex items-center gap-2 lg:hidden">
             {!authLoading && isAuthed && <AlertBell />}
-            <button className="text-navy" onClick={() => setOpen(!open)} aria-label="Menu">
+            <button ref={menuBtn} className="p-1 text-navy" onClick={() => setOpen(!open)} aria-label={open ? 'Close menu' : 'Open menu'} aria-expanded={open} aria-controls="mobile-menu">
               {open ? <Close className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
           </div>
@@ -92,10 +105,10 @@ export default function Layout() {
 
       {/* Mobile menu: slides in from the right, under the ☰ button. Lives outside the
           header because the header's blur effect would trap a fixed panel inside it. */}
-      <div className={`fixed inset-0 z-[1200] md:hidden ${open ? '' : 'pointer-events-none'}`} aria-hidden={!open}>
+      <div className={`fixed inset-0 z-[1200] transition-[visibility] duration-300 lg:hidden ${open ? 'visible' : 'pointer-events-none invisible'}`}>
         <div onClick={() => setOpen(false)}
           className={`absolute inset-0 bg-navy/40 transition-opacity duration-300 ${open ? 'opacity-100' : 'opacity-0'}`} />
-        <nav className={`absolute inset-y-0 right-0 flex w-[82%] max-w-sm flex-col overflow-y-auto bg-cream px-5 pb-8 pt-4 shadow-[-12px_0_40px_-12px_rgba(40,49,94,0.35)] transition-transform duration-300 ${open ? 'translate-x-0' : 'translate-x-full'}`}>
+        <nav id="mobile-menu" aria-label="Mobile" className={`absolute inset-y-0 right-0 flex w-[82%] max-w-sm flex-col overflow-y-auto bg-cream px-5 pb-8 pt-4 shadow-[-12px_0_40px_-12px_rgba(40,49,94,0.35)] transition-transform duration-300 ${open ? 'translate-x-0' : 'translate-x-full'}`}>
           <div className="flex justify-end pb-2">
             <button className="text-navy" onClick={() => setOpen(false)} aria-label="Close menu">
               <Close className="h-6 w-6" />
@@ -107,7 +120,7 @@ export default function Layout() {
                 {n.label}
               </NavLink>
             ))}
-            <button onClick={() => { setContact(true); setOpen(false) }}
+            <button onClick={openContact}
               className="block w-full border-b border-navy/5 py-3.5 text-left font-serif text-lg text-navy">
               Contact us
             </button>
@@ -121,13 +134,13 @@ export default function Layout() {
                   </NavLink>
                 ))}
                 {isAdmin && (
-                  <NavLink to="/admin" onClick={() => setOpen(false)}
+                  <NavLink to={ADMIN_PATH} onClick={() => setOpen(false)}
                     className={({ isActive }) => `block border-b border-navy/5 py-3.5 font-serif text-lg ${isActive ? 'text-cyan' : 'text-navy'}`}>
                     Admin
                   </NavLink>
                 )}
                 <button onClick={logOut}
-                  className="block w-full border-b border-navy/5 py-3.5 text-left font-serif text-lg text-ink/50">
+                  className="block w-full border-b border-navy/5 py-3.5 text-left font-serif text-lg text-ink/70">
                   Log out
                 </button>
               </>
@@ -155,10 +168,10 @@ export default function Layout() {
           <div className="flex flex-col items-start justify-between gap-8 md:flex-row md:items-center">
             <div>
               <img src="/logo-dark.svg" alt="SabraTech" className="h-12 w-auto" />
-              <p className="mt-3 text-sm text-cream/60">{txt(content,'footer_tagline')}</p>
+              <p className="mt-3 text-sm text-cream/70">{txt(content,'footer_tagline')}</p>
             </div>
             <div className="flex flex-wrap items-center gap-3">
-              <button onClick={() => setSponsor(true)}
+              <button onClick={openSponsor}
                 className="inline-flex items-center gap-2.5 rounded-md bg-cyan px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-cream hover:text-navy">
                 {txt(content,'sponsor_title')}
               </button>
@@ -168,19 +181,18 @@ export default function Layout() {
               </Link>
             </div>
           </div>
-          <div className="mt-10 flex flex-col gap-2 border-t border-cream/15 pt-5 text-xs text-cream/40 sm:flex-row sm:items-center sm:justify-between">
+          <div className="mt-10 flex flex-col gap-2 border-t border-cream/15 pt-5 text-xs text-cream/70 sm:flex-row sm:items-center sm:justify-between">
             <span>© {new Date().getFullYear()} SabraTech · Built by Creative Noa</span>
             <span className="flex items-center gap-4">
-              <Link to="/disclaimer" className="transition hover:text-cream/70">Disclaimer</Link>
-              <Link to="/admin" className="transition hover:text-cream/70">Admin</Link>
+              <Link to="/disclaimer" className="underline-offset-4 transition hover:text-cream hover:underline">Disclaimer</Link>
             </span>
           </div>
         </div>
       </footer>
 
-      {contact && <ContactModal onClose={() => setContact(false)} />}
+      {contact && <ContactModal onClose={closeContact} returnFocusTo={returnTo} />}
       {sponsor && <SponsorModal onClose={() => setSponsor(false)} />}
-      <AuthModal open={!!authTab} onClose={() => setAuthTab(null)} initialTab={authTab || 'login'} />
+      <AuthModal open={!!authTab} onClose={() => setAuthTab(null)} initialTab={authTab || 'login'} returnFocusTo={returnTo} />
     </div>
   )
 }

@@ -1,14 +1,28 @@
-import { useState } from 'react'
+import { useId, useState } from 'react'
+import Dialog from './Dialog'
 import { submitContactInquiry } from '../lib/data'
 import { Close } from './Icons'
 
-export default function ContactModal({ onClose }) {
+const PHONE_CHARS = /[^0-9 +().-]/g
+const phoneProblem = v => {
+  const t = v.trim()
+  if (!t) return ''
+  if (t.length < 7 || t.replace(/\D/g, '').length < 7) return 'Phone number looks too short — use at least 7 digits.'
+  if (t.length > 20) return 'Phone number is too long — 20 characters at most.'
+  return ''
+}
+
+export default function ContactModal({ onClose, returnFocusTo }) {
+  const titleId = useId()
+  const [phoneErr, setPhoneErr] = useState('')
   const [form, setForm] = useState({ first_name: '', last_name: '', email: '', phone: '', message: '' })
   const [status, setStatus] = useState('idle')
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
   const submit = async e => {
     e.preventDefault()
+    const problem = phoneProblem(form.phone)
+    if (problem) { setPhoneErr(problem); document.getElementById('ct-phone')?.focus(); return }
     setStatus('sending')
     try {
       await submitContactInquiry(form)
@@ -17,14 +31,14 @@ export default function ContactModal({ onClose }) {
   }
 
   return (
-    <div className="fixed inset-0 z-[2000] grid place-items-center bg-navy/60 p-5 backdrop-blur-sm" onClick={onClose}>
-      <div className="card w-full max-w-lg !bg-white p-7" onClick={e => e.stopPropagation()}>
+    <Dialog onClose={onClose} labelledBy={titleId} returnFocusTo={returnFocusTo}>
+      <div>
         <div className="flex items-start justify-between">
           <div>
             <p className="kicker">SabraTech</p>
-            <h2 className="mt-1 font-serif text-3xl text-navy">Contact us</h2>
+            <h2 id={titleId} className="mt-1 font-serif text-3xl text-navy">Contact us</h2>
           </div>
-          <button onClick={onClose} aria-label="Close" className="text-navy/40 transition hover:text-navy"><Close className="h-6 w-6" /></button>
+          <button onClick={onClose} aria-label="Close" className="text-navy/70 transition hover:text-navy"><Close className="h-6 w-6" /></button>
         </div>
 
         {status === 'done' ? (
@@ -54,7 +68,11 @@ export default function ContactModal({ onClose }) {
               </div>
               <div>
                 <label className="label" htmlFor="ct-phone">Phone *</label>
-                <input id="ct-phone" type="tel" required className="input" value={form.phone} onChange={e => set('phone', e.target.value)} />
+                <input id="ct-phone" type="tel" inputMode="tel" autoComplete="tel" required maxLength={20} className="input" value={form.phone}
+                  aria-invalid={phoneErr ? 'true' : undefined} aria-describedby={phoneErr ? 'ct-phone-err' : undefined}
+                  onChange={e => { set('phone', e.target.value.replace(PHONE_CHARS, '')); if (phoneErr) setPhoneErr('') }}
+                  onBlur={e => setPhoneErr(phoneProblem(e.target.value))} />
+                {phoneErr && <p id="ct-phone-err" role="alert" className="mt-1.5 text-xs font-semibold text-red-700">{phoneErr}</p>}
               </div>
             </div>
             <div>
@@ -68,6 +86,6 @@ export default function ContactModal({ onClose }) {
           </form>
         )}
       </div>
-    </div>
+    </Dialog>
   )
 }

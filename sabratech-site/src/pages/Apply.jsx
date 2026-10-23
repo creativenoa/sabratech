@@ -172,7 +172,7 @@ export default function Apply() {
               <Field id="email" label={L('email')} type="email" required value={form.email || ''} onChange={e => set('email', e.target.value)} />
               <Field id="phone" label={L('phone')} type="tel" value={form.phone || ''} onChange={e => set('phone', e.target.value)} />
             </div>
-            <Field id="linkedin" label={L('linkedin')} required value={form.linkedin || ''} onChange={e => set('linkedin', e.target.value)} placeholder="linkedin.com/in/…" />
+            <Field id="linkedin" label={L('linkedin')} value={form.linkedin || ''} onChange={e => set('linkedin', e.target.value)} placeholder="linkedin.com/in/…" />
             <div className="grid gap-4 sm:grid-cols-2">
               <Field id="website" label={L('website')} value={form.website || ''} onChange={e => set('website', e.target.value)} />
               <Field id="github" label={LT('github')} value={form.github || ''} onChange={e => set('github', e.target.value)} />

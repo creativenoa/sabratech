@@ -5,6 +5,16 @@ import react from '@vitejs/plugin-react'
 // (production has the same proxy as a rewrite in vercel.json).
 export default defineConfig({
   plugins: [react()],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return
+          if (/node_modules\/(react|react-dom|react-router|react-router-dom|scheduler|@remix-run)\//.test(id)) return 'react-vendor'
+        },
+      },
+    },
+  },
   server: {
     proxy: {
       '/neon-auth': {

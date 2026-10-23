@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { supabase, hasSupabase } from '../lib/supabase'
-import { DEFAULT_CONTENT, uploadFile } from '../lib/data'
+import { DEFAULT_CONTENT, uploadFile, fileUrl } from '../lib/data'
 import { Search, Close } from '../components/Icons'
-import AuthModal from '../components/AuthModal'
 import { useAuth, signOut } from '../lib/auth'
 import { adminSetOwner } from '../lib/account'
 import { flushPush } from '../lib/push'
@@ -144,8 +143,6 @@ export default function Admin() {
   const [contacts, setContacts] = useState([])
   const [contactsError, setContactsError] = useState('')
   const [membersError, setMembersError] = useState('')
-  const [schemaMsg, setSchemaMsg] = useState('')
-  const [authOpen, setAuthOpen] = useState(false)
   const [msg, setMsg] = useState('')
   const [dismissed, setDismissed] = useState(readDismissed)
   const [highlight, setHighlight] = useState(null)
@@ -202,16 +199,6 @@ export default function Admin() {
     adminListSuggestions().then(x => setSuggestions((x || []).filter(s => s.status === 'new'))).catch(() => {})
   }
   useEffect(() => { if (isAdmin) load() }, [isAdmin])
-
-  // When access is denied, check whether the cause is simply that the auth SQL has not been run.
-  useEffect(() => {
-    if (!hasSupabase || authLoading || isAdmin) return
-    let active = true
-    supabase.from('profiles').select('id').limit(1)
-      .then(({ error }) => { if (active && error) setSchemaMsg(error.message || 'The profiles table is missing.') })
-      .catch(err => { if (active) setSchemaMsg(err?.message || 'The profiles table is missing.') })
-    return () => { active = false }
-  }, [authLoading, isAdmin])
 
   if (!hasSupabase) return (
     <div className="mx-auto max-w-xl px-4 py-24 text-center">
@@ -306,30 +293,8 @@ export default function Admin() {
 
   if (authLoading) return <div className="min-h-[60vh]" />
 
-  if (!isAdmin) return (
-    <div className="mx-auto max-w-md px-5 py-24">
-      <div className="card !bg-white p-8 text-center">
-        <p className="kicker">Site admin</p>
-        <h1 className="mt-2 font-serif text-2xl text-navy md:text-3xl">Not authorised</h1>
-        <p className="mt-3 text-sm leading-relaxed text-ink/60">
-          {isAuthed
-            ? 'This account does not have admin access to the SabraTech console.'
-            : 'Log in with an admin account to open the console.'}
-        </p>
-        {schemaMsg && (
-          <p className="mt-4 rounded-md bg-cream p-3 text-left text-xs leading-relaxed text-ink/60">
-            Members setup is incomplete: {schemaMsg} Run the members SQL setup on the Neon database, then log in again.
-          </p>
-        )}
-        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
-          {isAuthed
-            ? <button onClick={() => { signOut().catch(() => {}) }} className="btn-outline">Log out</button>
-            : <button onClick={() => setAuthOpen(true)} className="btn-accent">Log in</button>}
-        </div>
-      </div>
-      <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} initialTab="login" />
-    </div>
-  )
+  // The route guard only mounts this page for approved admins; render nothing otherwise.
+  if (!isAdmin) return null
 
   const pending = rows.filter(r => r.status === 'pending')
   const live = rows.filter(r => r.status !== 'pending')
@@ -469,7 +434,7 @@ export default function Admin() {
           {contactsError && (
             <div className="card !p-4">
               <p className="text-sm font-bold text-red-700">Contact messages could not be loaded.</p>
-              <p className="mt-1 text-xs leading-relaxed text-ink/60">{contactsError} If the contact table has not been created on the Neon database yet, run the SQL setup and reload this page.</p>
+              <p className="mt-1 text-xs leading-relaxed text-ink/60">Something went wrong reading the contact messages. Please reload the page and try again; if it keeps happening, check the database.</p>
             </div>
           )}
           {!contactsError && contacts.length === 0 && <p className="py-10 text-center text-ink/40">No messages yet.</p>}
@@ -502,7 +467,7 @@ export default function Admin() {
           {membersError && (
             <div className="card !p-4">
               <p className="text-sm font-bold text-red-700">Members could not be loaded.</p>
-              <p className="mt-1 text-xs leading-relaxed text-ink/60">{membersError} If the members table has not been created on the Neon database yet, run the SQL setup and reload this page.</p>
+              <p className="mt-1 text-xs leading-relaxed text-ink/60">Something went wrong reading the member list. Please reload the page and try again; if it keeps happening, check the database.</p>
             </div>
           )}
           {!membersError && membersSorted.length === 0 && <p className="py-10 text-center text-ink/40">No members yet.</p>}
@@ -752,7 +717,7 @@ export default function Admin() {
               </div>
               <div>
                 <label className="label">Photo / logo</label>
-                {editing.photo_url && <img src={editing.photo_url} alt="" className="mb-2 h-20 w-20 rounded-md object-cover" />}
+                {editing.photo_url && <img src={fileUrl(editing.photo_url)} alt="" className="mb-2 h-20 w-20 rounded-md object-cover" />}
                 <input type="file" accept="image/*" className="input !py-2 text-sm" onChange={async e => {
                   const f = e.target.files?.[0]; if (!f) return
                   const url = await uploadFile('talent-photos', f)
@@ -761,7 +726,7 @@ export default function Admin() {
               </div>
               <div>
                 <label className="label">CV (PDF)</label>
-                {editing.cv_url && <a href={editing.cv_url} target="_blank" rel="noreferrer" className="mb-2 block text-sm font-bold text-cyan">Current CV ↗</a>}
+                {editing.cv_url && <a href={fileUrl(editing.cv_url)} target="_blank" rel="noreferrer" className="mb-2 block text-sm font-bold text-cyan">Current CV ↗</a>}
                 <input type="file" accept=".pdf" className="input !py-2 text-sm" onChange={async e => {
                   const f = e.target.files?.[0]; if (!f) return
                   const url = await uploadFile('talent-cvs', f)

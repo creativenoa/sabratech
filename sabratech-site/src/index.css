@@ -58,3 +58,11 @@ h1, h2, h3 { @apply font-serif; }
   .cal-grid-next, .cal-grid-prev, .cal-cell-first, .cal-title, .ev-card, .ev-modal { animation: ev-fade-in 180ms ease both; }
   .cal-dot { animation: none; }
 }
+
+/* ---------- Accessible greys (WCAG AA, 4.5:1) ----------
+   Helper/label text uses ink at 35-65% opacity all over the site. Raise those
+   steps centrally (on cream #F5F5F5 and white) instead of editing every page.
+   ink/60 was 3.9:1 -> 4.9:1; ink/40 was 2.3:1 -> 4.7:1. */
+.text-ink\/35, .text-ink\/40, .text-ink\/45, .text-ink\/50, .text-ink\/55 { color: rgb(41 41 41 / 0.67); }
+.text-ink\/60, .text-ink\/65 { color: rgb(41 41 41 / 0.7); }
+.text-navy\/40, .text-navy\/50 { color: rgb(40 49 94 / 0.75); }

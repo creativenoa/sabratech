@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import SkillsInput from './SkillsInput'
-import { DEFAULT_CATEGORIES, DEFAULT_CONTENT, fetchCategories, fetchContent, txt, uploadFile } from '../lib/data'
+import { DEFAULT_CATEGORIES, DEFAULT_CONTENT, fetchCategories, fetchContent, txt, uploadFile, fileUrl } from '../lib/data'
 
 const fmtPhone = v => {
   const d = (v || '').replace(/\D/g, '').slice(0, 10)
@@ -130,7 +130,7 @@ export default function ListingForm({ type, initial, onSubmit, submitLabel = 'Sa
           <Field id="lf-email" label={L('email')} type="email" required value={form.email || ''} onChange={e => set('email', e.target.value)} />
           <Field id="lf-phone" label={L('phone')} type="tel" value={form.phone || ''} onChange={e => set('phone', e.target.value)} />
         </div>
-        <Field id="lf-linkedin" label={L('linkedin')} required={isPerson} value={form.linkedin || ''} onChange={e => set('linkedin', e.target.value)} placeholder="linkedin.com/…" />
+        <Field id="lf-linkedin" label={L('linkedin')} value={form.linkedin || ''} onChange={e => set('linkedin', e.target.value)} placeholder="linkedin.com/…" />
         <div className="grid gap-4 sm:grid-cols-2">
           <Field id="lf-site" label={L('website')} value={form.website || ''} onChange={e => set('website', e.target.value)} />
           <Field id="lf-gh" label={LT('github')} value={form.github || ''} onChange={e => set('github', e.target.value)} />
@@ -149,7 +149,7 @@ export default function ListingForm({ type, initial, onSubmit, submitLabel = 'Sa
       <Section title={isPerson ? 'Photo' : 'Logo'}>
         <div className="flex items-center gap-4">
           {(photo || form.photo_url) && (
-            <img src={preview || form.photo_url} alt=""
+            <img src={preview || fileUrl(form.photo_url)} alt=""
               className={`h-16 w-16 shrink-0 object-cover ${isPerson ? 'rounded-full' : 'rounded-md'}`} />
           )}
           <input id="lf-photo" type="file" accept="image/*" aria-label={LT('photo')}

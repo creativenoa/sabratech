@@ -51,9 +51,12 @@ export default function Disclaimer() {
           <p className="mt-4 font-semibold text-ink/70">Thank you — we received your message.</p>
         ) : (
           <form onSubmit={send} className="mt-4 flex flex-col gap-3">
-            <input required className="input" placeholder="Your name" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
-            <input required type="email" className="input" placeholder="Email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
-            <textarea required rows={3} className="input" placeholder="Message" value={form.message} onChange={e => setForm(f => ({ ...f, message: e.target.value }))} />
+            <label htmlFor="dc-name" className="sr-only">Your name</label>
+            <input id="dc-name" required autoComplete="name" className="input" placeholder="Your name" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
+            <label htmlFor="dc-email" className="sr-only">Email</label>
+            <input id="dc-email" required type="email" autoComplete="email" className="input" placeholder="Email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
+            <label htmlFor="dc-msg" className="sr-only">Message</label>
+            <textarea id="dc-msg" required rows={3} className="input" placeholder="Message" value={form.message} onChange={e => setForm(f => ({ ...f, message: e.target.value }))} />
             <button className="btn-primary">Send</button>
           </form>
         )}

@@ -1,6 +1,7 @@
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
 import { Link } from 'react-router-dom'
 import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
 
 const pin = color => new L.DivIcon({
   className: '',

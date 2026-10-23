@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { uploadFile } from '../../lib/data'
+import { uploadFile, fileUrl } from '../../lib/data'
 import { businessMembers } from '../../lib/account'
 import {
   adminListEvents, adminListSuggestions, adminSetSuggestion, adminInvitees, adminRegistrations,
@@ -122,7 +122,7 @@ function EventEditor({ initial, members, businesses, adminId, onClose, onSaved }
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label className="label">Image</label>
-              {ev.image_url && <img src={ev.image_url} alt="" className="mb-2 h-24 w-full rounded-md object-cover" />}
+              {ev.image_url && <img src={fileUrl(ev.image_url)} alt="" className="mb-2 h-24 w-full rounded-md object-cover" />}
               <input type="file" accept="image/*" className="input !py-2 text-sm" onChange={async e => {
                 const f = e.target.files?.[0]; if (!f) return
                 if (f.size > 5 * 1024 * 1024) { setErr('Image is too large (5MB max)'); return }
@@ -223,7 +223,7 @@ export default function AdminEvents({ members, businesses, adminId, onCountsChan
           <div className="flex flex-col gap-2">
             {newSugg.map(s => (
               <div key={s.id} id={'sugg-' + s.id} className="card flex flex-wrap items-center gap-3 !p-4">
-                {s.image_url && <img src={s.image_url} alt="" className="h-10 w-14 rounded object-cover" />}
+                {s.image_url && <img src={fileUrl(s.image_url)} loading="lazy" alt="" className="h-10 w-14 rounded object-cover" />}
                 <div className="min-w-0 flex-1">
                   <p className="font-semibold text-navy">{s.title}</p>
                   <p className="text-xs text-ink/50">From {memberName(s.user_id)}{s.starts_at ? ` · ${fmtWhen(s.starts_at)}` : ''}{s.location ? ` · ${s.location}` : ''}</p>

@@ -14,7 +14,7 @@
  * Bump CACHE_VERSION to force every client to drop its old cache.
  */
 
-const CACHE_VERSION = 'sabratech-v5'
+const CACHE_VERSION = 'sabratech-v6'
 const OFFLINE_URL = '/index.html'
 
 self.addEventListener('install', event => {
@@ -106,7 +106,13 @@ self.addEventListener('push', event => {
 // Tapping an alert opens (or focuses) the site at the alert's page.
 self.addEventListener('notificationclick', event => {
   event.notification.close()
-  const target = new URL(event.notification.data?.url || '/notifications', self.location.origin).href
+  // Only ever open pages on our own site — a push payload must never be able
+  // to send someone to another website. Anything else falls back to '/'.
+  let target = new URL('/', self.location.origin).href
+  try {
+    const u = new URL(event.notification.data?.url || '/notifications', self.location.origin)
+    if (u.origin === self.location.origin) target = u.href
+  } catch { /* keep '/' */ }
   event.waitUntil((async () => {
     const wins = await self.clients.matchAll({ type: 'window', includeUncontrolled: true })
     for (const w of wins) {

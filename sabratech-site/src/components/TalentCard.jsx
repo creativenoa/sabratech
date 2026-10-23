@@ -1,16 +1,23 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Arrow, Building, User } from './Icons'
+import { fileUrl } from '../lib/data'
 
 export function posStyle(t) {
   const x = t.image_pos_x ?? 50, y = t.image_pos_y ?? 50, z = t.image_zoom ?? 1
   return { objectPosition: `${x}% ${y}%`, transform: `scale(${z})`, transformOrigin: `${x}% ${y}%` }
 }
 
+// Member photos are members-only files: always shown through fileUrl().
+// If one cannot be shown (not allowed / missing), the placeholder icon appears.
+// width/height give the browser the shape up front so nothing jumps on load.
 export function TalentImage({ t, className, round = false }) {
   const radius = round ? { borderRadius: '50%' } : { borderRadius: 6 }
-  if (t.photo_url) return (
+  const [broken, setBroken] = useState(null)
+  if (t.photo_url && broken !== t.photo_url) return (
     <div style={radius} className={`${className} overflow-hidden`}>
-      <img src={t.photo_url} alt={t.name} style={posStyle(t)} className="h-full w-full object-cover" loading="lazy" />
+      <img src={fileUrl(t.photo_url)} alt={t.name} style={posStyle(t)} className="h-full w-full object-cover"
+        width={400} height={400} loading="lazy" decoding="async" onError={() => setBroken(t.photo_url)} />
     </div>
   )
   const Icon = t.type === 'company' ? Building : User
@@ -33,6 +40,7 @@ export function Badges({ t, dark = false }) {
 }
 
 export default function TalentCard({ t, view }) {
+  const [broken, setBroken] = useState(null)
   const roleLine = t.type === 'individual'
     ? [t.title, t.company].filter(Boolean).join(' at ')
     : t.title
@@ -55,12 +63,14 @@ export default function TalentCard({ t, view }) {
   }
 
   const color = t.id % 2 === 0 ? '#1F327A' : '#28315E'
+  const showPhoto = t.photo_url && broken !== t.photo_url
   return (
     <Link to={`/talent/${t.id}`}
       className="group flex flex-col overflow-hidden rounded-md shadow-[0_10px_30px_-12px_rgba(40,49,94,0.35)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_18px_44px_-12px_rgba(40,49,94,0.5)]">
       <div className="relative">
-        {t.photo_url
-          ? <div className="h-44 w-full overflow-hidden bg-white"><img src={t.photo_url} alt={t.name} style={posStyle(t)} className="h-full w-full object-cover" loading="lazy" /></div>
+        {showPhoto
+          ? <div className="h-44 w-full overflow-hidden bg-white"><img src={fileUrl(t.photo_url)} alt={t.name} style={posStyle(t)} className="h-full w-full object-cover"
+              width={600} height={352} loading="lazy" decoding="async" onError={() => setBroken(t.photo_url)} /></div>
           : <div className="grid h-44 w-full place-items-center bg-sand">
               {t.type === 'company' ? <Building className="h-14 w-14 text-navy/40" /> : <User className="h-14 w-14 text-navy/40" />}
             </div>}

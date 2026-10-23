@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
+import Dialog from './Dialog'
 import { signUp, signIn, resetPassword } from '../lib/auth'
 import { Close } from './Icons'
 
-export default function AuthModal({ open, onClose, initialTab = 'login' }) {
+export default function AuthModal({ open, onClose, initialTab = 'login', returnFocusTo }) {
+  const titleId = useId()
   const [tab, setTab] = useState(initialTab)
   const [form, setForm] = useState({ fullName: '', email: '', password: '' })
   const [status, setStatus] = useState('idle')
@@ -71,19 +73,19 @@ export default function AuthModal({ open, onClose, initialTab = 'login' }) {
 
   const tabClass = active =>
     'flex-1 border-b-2 pb-2.5 text-sm font-semibold tracking-wide transition ' +
-    (active ? 'border-cyan text-navy' : 'border-navy/10 text-ink/40 hover:text-navy')
+    (active ? 'border-cyan text-navy' : 'border-navy/10 text-ink/60 hover:text-navy')
 
   return (
-    <div className="fixed inset-0 z-[2000] grid place-items-center bg-navy/60 p-5 backdrop-blur-sm" onClick={onClose}>
-      <div className="card w-full max-w-lg !bg-white p-7" onClick={e => e.stopPropagation()}>
+    <Dialog onClose={onClose} labelledBy={titleId} returnFocusTo={returnFocusTo}>
+      <div>
         <div className="flex items-start justify-between">
           <div>
             <p className="kicker">SabraTech members</p>
-            <h2 className="mt-1 font-serif text-3xl text-navy">
+            <h2 id={titleId} className="mt-1 font-serif text-3xl text-navy">
               {tab === 'signup' ? 'Become a member' : 'Log in'}
             </h2>
           </div>
-          <button onClick={onClose} aria-label="Close" className="text-navy/40 transition hover:text-navy"><Close className="h-6 w-6" /></button>
+          <button onClick={onClose} aria-label="Close" className="text-navy/70 transition hover:text-navy"><Close className="h-6 w-6" /></button>
         </div>
 
         {status === 'done' ? (
@@ -92,13 +94,13 @@ export default function AuthModal({ open, onClose, initialTab = 'login' }) {
             <p className="mt-3 leading-relaxed text-ink/60">
               One more step: create your profile — your page in the directory. The SabraTech team then approves your membership and profile together.
             </p>
-            <button onClick={onClose} className="btn-accent mt-6">Create my profile</button>
+            <button onClick={onClose} autoFocus className="btn-accent mt-6">Create my profile</button>
           </div>
         ) : (
           <>
             <div className="mt-6 flex gap-6">
-              <button type="button" onClick={() => pick('login')} className={tabClass(tab === 'login')}>Log in</button>
-              <button type="button" onClick={() => pick('signup')} className={tabClass(tab === 'signup')}>Become a member</button>
+              <button type="button" aria-pressed={tab === 'login'} onClick={() => pick('login')} className={tabClass(tab === 'login')}>Log in</button>
+              <button type="button" aria-pressed={tab === 'signup'} onClick={() => pick('signup')} className={tabClass(tab === 'signup')}>Become a member</button>
             </div>
 
             {tab === 'login' ? (
@@ -153,6 +155,6 @@ export default function AuthModal({ open, onClose, initialTab = 'login' }) {
           </>
         )}
       </div>
-    </div>
+    </Dialog>
   )
 }

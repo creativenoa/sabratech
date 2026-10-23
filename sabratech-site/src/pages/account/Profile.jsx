@@ -9,6 +9,7 @@ import {
   setMemberRole, removeMember, transferOwnership,
 } from '../../lib/account'
 import { Search, User, Building } from '../../components/Icons'
+import { fileUrl } from '../../lib/data'
 
 const LISTING_STATUS = {
   approved: ['Live in the directory', 'bg-cyan text-white'],
@@ -172,7 +173,7 @@ function BusinessCard({ biz, onChanged }) {
     <div className="card !bg-white">
       <div className="flex flex-wrap items-center gap-4 p-5">
         {biz.photo_url
-          ? <img src={biz.photo_url} alt="" className="h-12 w-12 shrink-0 rounded-md object-cover" />
+          ? <img src={fileUrl(biz.photo_url)} alt="" className="h-12 w-12 shrink-0 rounded-md object-cover" />
           : <span className="grid h-12 w-12 shrink-0 place-items-center rounded-md bg-navy/5"><Building className="h-6 w-6 text-navy/30" /></span>}
         <div className="min-w-0 flex-1">
           <p className="truncate font-serif text-lg text-navy">{biz.name}</p>
@@ -258,7 +259,7 @@ function AddBusiness({ onChanged }) {
               <div key={b.id} className={`border-b border-navy/5 ${open ? 'rounded-md bg-cream' : ''}`}>
                 <button type="button" disabled={!canAsk} onClick={() => { setPicked(open ? null : b.id); setLeader(false) }}
                   className="flex w-full flex-wrap items-center gap-3 px-2 py-3 text-left disabled:cursor-default">
-                  {b.photo_url ? <img src={b.photo_url} alt="" className="h-9 w-9 rounded-md object-cover" /> : <span className="grid h-9 w-9 place-items-center rounded-md bg-navy/5"><Building className="h-5 w-5 text-navy/30" /></span>}
+                  {b.photo_url ? <img src={fileUrl(b.photo_url)} loading="lazy" alt="" className="h-9 w-9 rounded-md object-cover" /> : <span className="grid h-9 w-9 place-items-center rounded-md bg-navy/5"><Building className="h-5 w-5 text-navy/30" /></span>}
                   <span className="min-w-0 flex-1">
                     <span className="block truncate font-semibold text-navy">{b.name}</span>
                     <span className="block truncate text-xs text-ink/45">{b.published ? b.title : 'Waiting for approval'}</span>

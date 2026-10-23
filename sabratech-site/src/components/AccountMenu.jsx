@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth, signOut } from '../lib/auth'
 import { countUnread, fetchAlerts, markRead } from '../lib/account'
 import { flushPush } from '../lib/push'
+import { ADMIN_PATH } from '../lib/adminPath'
 import { Bell, Chevron, User, Building, Cog, Shield, Logout } from './Icons'
 
 export const ACCOUNT_LINKS = [
@@ -157,7 +158,7 @@ export default function AccountMenu() {
               </Link>
             ))}
             {isAdmin && (
-              <Link to="/admin" role="menuitem" className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-navy transition hover:bg-cream">
+              <Link to={ADMIN_PATH} role="menuitem" className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-navy transition hover:bg-cream">
                 <Shield className="h-4 w-4 text-ink/40" /> Admin
               </Link>
             )}
