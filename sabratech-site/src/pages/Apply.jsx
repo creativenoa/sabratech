@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { DEFAULT_CATEGORIES, DEFAULT_CONTENT, fetchCategories, fetchContent, fetchTalents, txt, submitApplication, uploadFile } from '../lib/data'
 import { hasSupabase } from '../lib/supabase'
 import { Building, User } from '../components/Icons'
+import SkillsInput from '../components/SkillsInput'
 
 const fmtPhone = v => {
   const d = v.replace(/\D/g, '').slice(0, 10)
@@ -51,7 +52,7 @@ export default function Apply() {
     e.preventDefault()
     setStatus('sending')
     try {
-      const { show_phone_ok, show_email_ok, skills_raw, first_name, last_name, ...data } = form
+      const { show_phone_ok, show_email_ok, skills, first_name, last_name, ...data } = form
       let photo_url = '', cv_url = '', cv_updated_at = null
       if (photo) photo_url = await uploadFile('talent-photos', photo)
       await submitApplication({
@@ -66,7 +67,7 @@ export default function Apply() {
               name: `${first_name || ''} ${last_name || ''}`.trim(),
             }
           : {}),
-        skills: (skills_raw || '').split(',').map(s => s.trim()).filter(Boolean),
+        skills: Array.isArray(skills) ? skills : [],
         photo_url, cv_url, cv_updated_at,
         show_phone: !!show_phone_ok,
         show_email: !!show_email_ok,
@@ -143,7 +144,7 @@ export default function Apply() {
             </div>
             <Field id="bio" label={LT('bio')} type="textarea" rows={2} required value={form.bio || ''} onChange={e => set('bio', e.target.value)} />
             <Field id="description" label={LT('description')} type="textarea" rows={4} value={form.description || ''} onChange={e => set('description', e.target.value)} />
-            <Field id="skills" label={LT('skills')} value={form.skills_raw || ''} onChange={e => set('skills_raw', e.target.value)} placeholder="React, Python, AWS, AI…" />
+            <SkillsInput id="skills" label={LT('skills')} value={form.skills || []} onChange={v => set('skills', v)} placeholder="React, Python, AWS, AI…" />
           </Section>
 
           <Section title="Status">

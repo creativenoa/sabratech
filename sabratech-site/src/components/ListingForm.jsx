@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import SkillsInput from './SkillsInput'
 import { DEFAULT_CATEGORIES, DEFAULT_CONTENT, fetchCategories, fetchContent, txt, uploadFile } from '../lib/data'
 
 const fmtPhone = v => {
@@ -41,7 +42,7 @@ export default function ListingForm({ type, initial, onSubmit, submitLabel = 'Sa
   const isPerson = type === 'individual'
   const [form, setForm] = useState(() => ({
     show_whatsapp: true, show_on_map: true, ...(initial || {}),
-    skills_raw: (initial?.skills || []).join(', '),
+    skills: Array.isArray(initial?.skills) ? initial.skills : [],
   }))
   const [photo, setPhoto] = useState(null)
   const [busy, setBusy] = useState(false)
@@ -60,14 +61,14 @@ export default function ListingForm({ type, initial, onSubmit, submitLabel = 'Sa
     e.preventDefault()
     setBusy(true); setErr('')
     try {
-      const { skills_raw, ...rest } = form
+      const { ...rest } = form
       let photo_url = rest.photo_url || ''
       if (photo) photo_url = await uploadFile('talent-photos', photo)
       await onSubmit({
         ...rest,
         type,
         photo_url,
-        skills: (skills_raw || '').split(',').map(s => s.trim()).filter(Boolean),
+        skills: Array.isArray(rest.skills) ? rest.skills : [],
         open_to_work: isPerson && !!rest.open_to_work,
         freelance: isPerson && !!rest.freelance,
         hiring: !isPerson && !!rest.hiring,
@@ -108,7 +109,7 @@ export default function ListingForm({ type, initial, onSubmit, submitLabel = 'Sa
         </div>
         <Field id="lf-bio" label={LT('bio')} type="textarea" rows={2} required value={form.bio || ''} onChange={e => set('bio', e.target.value)} />
         <Field id="lf-desc" label={LT('description')} type="textarea" rows={4} value={form.description || ''} onChange={e => set('description', e.target.value)} />
-        <Field id="lf-skills" label={LT('skills')} value={form.skills_raw || ''} onChange={e => set('skills_raw', e.target.value)} placeholder="React, Python, AWS, AI…" />
+        <SkillsInput id="lf-skills" label={LT('skills')} value={form.skills || []} onChange={v => set('skills', v)} placeholder="React, Python, AWS, AI…" />
       </Section>
 
       <Section title="Status">
