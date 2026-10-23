@@ -9,7 +9,7 @@
       "destination": "/api/neon-auth?p=:path*"
     },
     {
-      "source": "/(.*)",
+      "source": "/((?!assets/).*)",
       "destination": "/index.html"
     }
   ],

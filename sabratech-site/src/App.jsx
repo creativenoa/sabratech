@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react'
+import { Suspense } from 'react'
 import { Routes, Route, Navigate, useParams, useLocation } from 'react-router-dom'
 import Layout from './components/Layout'
 import AuthGate from './components/AuthGate'
@@ -9,19 +9,21 @@ import { useAuth } from './lib/auth'
 import { ADMIN_PATH } from './lib/adminPath'
 
 // Route pages that are not needed for the first public view load on demand.
-const Search = lazy(() => import('./pages/Search'))
-const TalentDetail = lazy(() => import('./pages/TalentDetail'))
-const AI = lazy(() => import('./pages/AI'))
-const Apply = lazy(() => import('./pages/Apply'))
-const Blog = lazy(() => import('./pages/Blog'))
-const Events = lazy(() => import('./pages/Events'))
-const Disclaimer = lazy(() => import('./pages/Disclaimer'))
-const ResetPassword = lazy(() => import('./pages/ResetPassword'))
-const MyAccount = lazy(() => import('./pages/account/MyAccount'))
-const Profile = lazy(() => import('./pages/account/Profile'))
-const Notifications = lazy(() => import('./pages/account/Notifications'))
-const Settings = lazy(() => import('./pages/account/Settings'))
-const Admin = lazy(() => import('./pages/Admin'))
+import lazyPage from './lib/lazyPage'
+import PageErrorBoundary from './components/PageErrorBoundary'
+const Search = lazyPage(() => import('./pages/Search'))
+const TalentDetail = lazyPage(() => import('./pages/TalentDetail'))
+const AI = lazyPage(() => import('./pages/AI'))
+const Apply = lazyPage(() => import('./pages/Apply'))
+const Blog = lazyPage(() => import('./pages/Blog'))
+const Events = lazyPage(() => import('./pages/Events'))
+const Disclaimer = lazyPage(() => import('./pages/Disclaimer'))
+const ResetPassword = lazyPage(() => import('./pages/ResetPassword'))
+const MyAccount = lazyPage(() => import('./pages/account/MyAccount'))
+const Profile = lazyPage(() => import('./pages/account/Profile'))
+const Notifications = lazyPage(() => import('./pages/account/Notifications'))
+const Settings = lazyPage(() => import('./pages/account/Settings'))
+const Admin = lazyPage(() => import('./pages/Admin'))
 
 // Fixed-height placeholder so the footer does not jump while a page chunk loads.
 const Fallback = () => <div className="min-h-[70vh]" aria-hidden="true" />
@@ -56,6 +58,7 @@ function LegacyAdminRedirect() {
 export default function App() {
   usePageViews()
   return (
+    <PageErrorBoundary>
     <Suspense fallback={<Fallback />}>
       <Routes>
         <Route element={<Layout />}>
@@ -80,5 +83,6 @@ export default function App() {
         </Route>
       </Routes>
     </Suspense>
+    </PageErrorBoundary>
   )
 }
