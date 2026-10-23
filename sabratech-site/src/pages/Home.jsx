@@ -48,7 +48,7 @@ export default function Home() {
         <div className="mx-auto max-w-[1080px] px-5 pb-16 pt-24 md:pb-24 md:pt-40">
           <div className="max-w-4xl">
             <p className="kicker">{txt(content,'home_hero_kicker')}</p>
-            <h1 className="mt-5 font-serif text-5xl font-600 leading-[1.12] tracking-[-0.02em] text-ink md:text-7xl">
+            <h1 className="mt-5 break-words font-serif text-[clamp(2rem,9vw,3rem)] font-600 leading-[1.12] tracking-[-0.02em] text-ink md:text-7xl">
               {heroLine1 && <span className="block">{heroLine1}</span>}
               <span className="block">
                 {heroWords.slice(0, -1).join(' ')}{' '}
