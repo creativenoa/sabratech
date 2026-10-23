@@ -7,7 +7,7 @@ export default {
         navy: '#28315E',
         royal: '#1F327A',
         /* DEFAULT is the accessible cyan (white text on it = 5.0:1). `bright` is the original brand cyan, for large decorative use only. */
-        cyan: { DEFAULT: '#0077A8', bright: '#00A5E0' },
+        cyan: { DEFAULT: '#0099FF', bright: '#00A5E0' },
         cream: '#F5F5F5',
         sand: '#D9D9D9',
         ink: '#292929',
