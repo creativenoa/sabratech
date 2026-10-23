@@ -33,11 +33,11 @@ function PhoneAlerts({ userId }) {
     <Panel>
       <div className="flex flex-wrap items-center gap-4">
         <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-full ${state === 'on' ? 'bg-cyan text-white' : 'bg-navy/5 text-navy/40'}`}><Bell className="h-5 w-5" /></span>
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0 flex-1 basis-48">
           <p className="font-semibold text-navy">{text[0]}</p>
           <p className="text-sm text-ink/55">{text[1]}</p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex w-full flex-wrap gap-2 sm:w-auto [&>button]:flex-1 sm:[&>button]:flex-none">
           {state === 'off' && <button disabled={busy} onClick={() => run(async () => { await enablePush(userId); await sendTestPush().catch(() => {}) }, 'Done — you should see a test alert now.')} className="btn-accent !px-4 !py-2 !text-sm disabled:opacity-50">{busy ? 'Turning on…' : 'Turn on phone alerts'}</button>}
           {state === 'on' && <>
             <button disabled={busy} onClick={() => run(sendTestPush, 'Test alert sent.')} className="btn-outline !px-4 !py-2 !text-sm disabled:opacity-50">Send a test</button>
@@ -117,12 +117,12 @@ export default function Notifications() {
         <Panel title="How to reach me" sub="Choose which alerts you get, and where.">
           {msg && <div className="mb-3"><Note kind={msg[0]}>{msg[1]}</Note></div>}
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[480px] text-sm">
+            <table className="w-full text-sm">
               <thead>
-                <tr className="text-left text-xs uppercase tracking-[0.15em] text-ink/40">
+                <tr className="text-left text-[10px] uppercase tracking-[0.1em] text-ink/40 md:text-xs md:tracking-[0.15em]">
                   <th className="pb-3 font-semibold">Alert</th>
                   {CHANNELS.map(c => (
-                    <th key={c.key} className={`w-24 pb-3 text-center font-semibold ${c.soon ? 'text-ink/25' : ''}`}>
+                    <th key={c.key} className={`w-14 pb-3 text-center font-semibold md:w-24 ${c.soon ? 'text-ink/25' : ''}`}>
                       {c.mobileLabel ? <><span className="md:hidden">{c.mobileLabel}</span><span className="hidden md:inline">{c.label}</span></> : c.label}
                     </th>
                   ))}
@@ -131,7 +131,7 @@ export default function Notifications() {
               <tbody>
                 {types.map((t, row) => (
                   <tr key={t.key} className="border-t border-navy/5">
-                    <td className="py-3 pr-4">
+                    <td className="py-3 pr-2 md:pr-4">
                       <p className="font-semibold text-navy">{t.label}</p>
                       <p className="text-xs text-ink/50">{t.desc}</p>
                     </td>
